@@ -12,6 +12,7 @@ INCLUDEPATH += $$PWD/acerca \
     $$PWD/conexion \
     $$PWD/dispositivos \
     $$PWD/../iconos \
+    $$PWD/../proto \    
     $$PWD/rec
 
 SOURCES += main.cpp\
@@ -33,3 +34,6 @@ FORMS    += rec/rec.ui \
     dispositivos/dispositivos.ui
 
 RESOURCES += ../iconos.qrc \
+
+PROTOS = ../proto/captura.proto
+include(../protobuf.pri)

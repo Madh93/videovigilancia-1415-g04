@@ -11,6 +11,7 @@ TEMPLATE = app
 INCLUDEPATH += $$PWD/acerca \
     $$PWD/puertoescucha \
     $$PWD/../iconos \
+    $$PWD/../proto \
     $$PWD/rec
 
 SOURCES += main.cpp\
@@ -27,3 +28,6 @@ FORMS    += rec/rec.ui \
     puertoescucha/puertoescucha.ui
 
 RESOURCES += ../iconos.qrc \
+
+PROTOS = ../proto/captura.proto
+include(../protobuf.pri)
