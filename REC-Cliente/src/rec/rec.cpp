@@ -152,9 +152,7 @@ void Rec::on_actionCapturar_triggered() {
     connect(buffer, SIGNAL(transmitirImagen(QImage)), this, SLOT(actualizarImagen(QImage)));
 }
 
-
 void Rec::on_actionCerrar_triggered() { limpiarCamara(); }
-
 
 void Rec::on_actionSalir_triggered() { qApp->quit(); }
 
