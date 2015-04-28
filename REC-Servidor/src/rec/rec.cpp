@@ -53,6 +53,33 @@ void Rec::crearLabel() {
 }
 
 
+void Rec::guardarImagen(QPixmap imagen, QString usuario, uint timestamp) {
+
+    // Ejemplo: /home/$USER/.rec/usuario/25042015-00443576.jpg
+
+    // Comprobar path de REC
+    QString path = QDir::homePath()+"/.rec";
+    QString path_usuario = path+"/"+usuario;
+    QDir dir(path);
+
+    // Si no existe, crear carpeta
+    if (!dir.exists())
+        dir.mkpath(path);
+
+    // Comprobar que existe directorio del usuario
+    dir.setPath(path_usuario);
+    if (!dir.exists())
+        dir.mkpath(path_usuario);
+
+    // Almacenar imagen en disco duro
+    QDateTime fecha = QDateTime::currentDateTime().fromTime_t(timestamp);
+    QString formato = fecha.toString(QLatin1String("ddMMyyyy-hhmmsszz"));
+    QString path_imagen = path_usuario + QString::fromLatin1("/%1.jpg").arg(formato);
+
+    imagen.save(path_imagen,0,60);
+}
+
+
 /***************************
  SLOTS
 **************************/

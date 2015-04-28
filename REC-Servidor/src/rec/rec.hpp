@@ -15,6 +15,7 @@
 #include <QPainter>
 #include <QSettings>
 #include <QTime>
+#include <QDir>
 
 #include "acerca.hpp"
 #include "puertoescucha.hpp"
@@ -36,6 +37,7 @@ class Rec : public QMainWindow {
 
         void activarFuncionalidades(bool cond);
         void crearLabel();
+        void guardarImagen(QPixmap imagen, QString usuario, uint timestamp);
 
     private slots:
 
