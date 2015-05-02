@@ -15,7 +15,7 @@
 #include <QPainter>
 #include <QSettings>
 #include <QTime>
-//#include <QCameraInfo>
+#include <QCameraInfo>
 #include <QCamera>
 #include <QCoreApplication>
 #include <QSocketNotifier>

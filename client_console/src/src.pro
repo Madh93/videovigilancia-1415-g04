@@ -10,18 +10,19 @@ TEMPLATE = app
 
 INCLUDEPATH += $$PWD/acerca \
     $$PWD/capturebuffer \
-    $$PWD/conexion \
-    $$PWD/dispositivos \
     $$PWD/client_console \
+	 $$PWD/console \
     $$PWD/../iconos \
     $$PWD/../proto \    
     $$PWD/rec
 
 SOURCES += main.cpp\
     capturebuffer/capturebuffer.cpp \
+	 console/console.cpp \
     client_console/client_console.cpp
 
 HEADERS  += client_console/client_console.hpp \
+	 console/console.hpp \
     capturebuffer/capturebuffer.hpp \
 
 
