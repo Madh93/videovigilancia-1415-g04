@@ -21,12 +21,13 @@ public:
     void show_ip();
     void show_port();
     void show_device();
+
 private:
 
     QTextStream *in_;
     QTextStream *out_;
 
-    QString eleccion;
+    QString eleccion_;
     QString ip_;
     QString port_;
     QSettings config_;

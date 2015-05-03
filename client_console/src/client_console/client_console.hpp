@@ -39,44 +39,8 @@ class ClientConsole : public QObject {
 
     Q_OBJECT
 
-    private:
-
-        //Ui::ClientConsole *ui;
-        QCamera *camara;
-        CaptureBuffer *buffer;
-        QLabel *label;
-        QSettings preferencias;
-        QPixmap pixmap;
-        int port_;
-        QString host_;
-        QString clientName;
-        QByteArray device_;
-
-        void activarFuncionalidades(bool cond);
-        void crearLabel();
-        void limpiarCamara();
 
     private:
-
-        void actualizarImagen(QImage imagen);
-
-        // Archivo
-        void on_actionCapturar_triggered();
-        void on_actionCerrar_triggered();
-        void on_actionSalir_triggered();
-
-        // Herramientas
-        //void on_actionTomarInstantanea_triggered();
-
-        // Preferencias
-        //void on_actionConfigurarConexion_triggered();
-        //void on_actionDispositivos_triggered();
-        //void on_actionPantallaCompleta_toggled(bool cond);
-
-        // Ayuda
-        void on_actionAyuda_triggered();
-        void on_actionAcercaDe_triggered();
-        void on_actionAcercaDeQt_triggered();
 
         //---------UTILIZACIÓN DE SEÑALES------//
 
@@ -98,7 +62,7 @@ class ClientConsole : public QObject {
 
     public:
 
-        explicit ClientConsole(QString host, int port, QString nameClient, int device);
+        explicit ClientConsole(QObject *parent);
         ~ClientConsole();
 
         //---------UTILIZACIÓN DE SEÑALES POSIX------//
