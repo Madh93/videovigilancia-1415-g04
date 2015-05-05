@@ -28,7 +28,7 @@ SOURCES += main.cpp\
 HEADERS  += rec/rec.hpp \
     acerca/acerca.hpp \
     capturebuffer/capturebuffer.hpp \
-    cliente/cliente.cpp \
+    cliente/cliente.hpp \
     conexion/conexion.hpp \
     dispositivos/dispositivos.hpp
 
