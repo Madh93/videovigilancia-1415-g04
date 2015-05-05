@@ -1,5 +1,6 @@
 QT       += core gui \
-            multimedia multimediawidgets
+            multimedia multimediawidgets \
+            network
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -9,6 +10,7 @@ TEMPLATE = app
 
 INCLUDEPATH += $$PWD/acerca \
     $$PWD/capturebuffer \
+    $$PWD/cliente \
     $$PWD/conexion \
     $$PWD/dispositivos \
     $$PWD/../iconos \
@@ -18,6 +20,7 @@ INCLUDEPATH += $$PWD/acerca \
 SOURCES += main.cpp\
     acerca/acerca.cpp \
     capturebuffer/capturebuffer.cpp \
+    cliente/cliente.cpp \
     conexion/conexion.cpp \
     dispositivos/dispositivos.cpp \
     rec/rec.cpp
@@ -25,6 +28,7 @@ SOURCES += main.cpp\
 HEADERS  += rec/rec.hpp \
     acerca/acerca.hpp \
     capturebuffer/capturebuffer.hpp \
+    cliente/cliente.cpp \
     conexion/conexion.hpp \
     dispositivos/dispositivos.hpp
 
