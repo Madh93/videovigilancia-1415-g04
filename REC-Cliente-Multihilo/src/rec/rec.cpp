@@ -6,10 +6,16 @@ Rec::Rec(QWidget *parent) :
     ui(new Ui::Rec),
     camara(NULL),
     buffer(NULL),
-    label(NULL) {
+    socket(NULL),
+    label(NULL),
+    conectado(false) {
 
         ui->setupUi(this);
         crearLabel();
+
+        // Añadir información de estado
+        ui->statusBar->addWidget(&statusIzda);
+        statusIzda.setText("Desconectado");
 }
 
 
@@ -26,6 +32,11 @@ Rec::~Rec() {
     if (buffer) {
         delete buffer;
         buffer = NULL;
+    }
+
+    if (socket) {
+        delete socket;
+        socket = NULL;
     }
 }
 
@@ -80,8 +91,44 @@ void Rec::limpiarCamara() {
         buffer = NULL;
     }
 
+    // Ajustes
     activarFuncionalidades(false);
     crearLabel();
+    statusIzda.setText("Desconectado");
+}
+
+
+void Rec::limpiarSocket() {
+
+    if (socket) {
+         socket->deleteLater();
+        //qDebug() << "DEBUGEANDO 1...";
+        //socket->disconnectFromHost();
+        //qDebug() << "DEBUGEANDO 2...";
+        // disconnect(socket, SIGNAL(connected()), this, SLOT(iniciarCamara()));
+        // disconnect(socket, SIGNAL(disconnected()), this, SLOT(desconectar()));
+        // disconnect(socket, SIGNAL(error(QAbstractSocket::SocketError)),
+         //        this, SLOT(socketError(QAbstractSocket::SocketError)));
+        //delete socket;
+        //qDebug() << "DEBUGEANDO 3...";
+        //socket = NULL;
+    }
+    //qDebug() << "DEBUGEANDO 4...";
+}
+
+
+void Rec::conectarConServidor() {
+
+    // Iniciar conexión con el servidor
+    socket = new QTcpSocket(this);
+    socket->connectToHost(preferencias.value("direccion").toString(),
+                          preferencias.value("puerto").toInt());
+
+    // Señales de estado
+    connect(socket, SIGNAL(connected()), this, SLOT(iniciarCamara()));
+    connect(socket, SIGNAL(disconnected()), this, SLOT(desconectar()));
+    connect(socket, SIGNAL(error(QAbstractSocket::SocketError)),
+            this, SLOT(socketError(QAbstractSocket::SocketError)));
 }
 
 
@@ -102,6 +149,86 @@ void Rec::actualizarImagen(QImage imagen){
                      QTime().currentTime().toString());
 
     label->setPixmap(pixmap);
+
+
+    if (conectado) {
+
+        // Obtener imagen
+        QBuffer img_buff;
+        pixmap.toImage().save(&img_buff, "jpeg");
+
+        //Crear paquete de protocolo
+        Captura captura;
+        captura.set_usuario(preferencias.value("usuario").toString().toStdString());
+        captura.set_timestamp(QDateTime::currentDateTime().toTime_t());
+        captura.set_imagen(img_buff.buffer().constData(), img_buff.buffer().size());
+
+        // Serializar el mensaje
+        std::string datos;
+        captura.SerializeToString(&datos);
+        int size = datos.size();
+
+        // Enviar mensaje serializado (tamaño+mensaje)
+        socket->write(reinterpret_cast<char*>(&size), sizeof(size));
+        socket->write(datos.c_str(), size);
+
+        socket->waitForBytesWritten();
+
+        qDebug() << "Envia";
+    }
+}
+
+
+void Rec::iniciarCamara() {
+
+    // Iniciar captura
+    buffer = new CaptureBuffer;
+    camara->setViewfinder(buffer);
+
+    // Ajustes
+    activarFuncionalidades(true);
+    this->setWindowTitle(WINDOW_RECORDING);
+    statusIzda.setText("Conectado");
+    connect(buffer, SIGNAL(transmitirImagen(QImage)), this, SLOT(actualizarImagen(QImage)));
+
+    camara->start();
+    conectado = true;
+}
+
+
+void Rec::desconectar() {
+
+    limpiarSocket();
+    limpiarCamara();
+    conectado = false;
+}
+
+
+void Rec::socketError(QAbstractSocket::SocketError error) {
+
+    switch (error) {
+
+        case QAbstractSocket::ConnectionRefusedError :
+            QMessageBox::warning(this, WINDOW_WARNING,
+                                 "No se ha encontrado el servidor.\nComprueba la dirección y el puerto.");
+            limpiarSocket();
+            break;
+
+        case QAbstractSocket::HostNotFoundError :
+            QMessageBox::warning(this, WINDOW_WARNING,
+                                 "Dirección del servidor errónea.\nComprueba la dirección y el puerto.");
+            limpiarSocket();
+            break;
+
+        case QAbstractSocket::RemoteHostClosedError :
+            QMessageBox::warning(this, WINDOW_WARNING,
+                                 "El servidor ha cerrado la conexión.");
+            desconectar();
+            break;
+
+        default : break;
+    }
+
 }
 
 
@@ -111,8 +238,9 @@ void Rec::actualizarImagen(QImage imagen){
 
 void Rec::on_actionCapturar_triggered() {
 
-    // Borrar camara anterior
-    on_actionCerrar_triggered();
+    // Borrar instancia anterior
+    if (conectado)
+        on_actionCerrar_triggered();
 
     // Abrir camara por defecto o guardada en preferencias
     QString ruta = preferencias.value("dispositivo").toString();
@@ -141,18 +269,16 @@ void Rec::on_actionCapturar_triggered() {
         return;
     }
 
-    // Iniciar captura
-    buffer = new CaptureBuffer;
-    camara->setViewfinder(buffer);
-    camara->start();
-
-    // Ajustes
-    activarFuncionalidades(true);
-    this->setWindowTitle(WINDOW_RECORDING);
-    connect(buffer, SIGNAL(transmitirImagen(QImage)), this, SLOT(actualizarImagen(QImage)));
+    // Iniciar conexión con el servidor
+    conectarConServidor();
 }
 
-void Rec::on_actionCerrar_triggered() { limpiarCamara(); }
+void Rec::on_actionCerrar_triggered() {
+
+    socket->disconnectFromHost();
+    if (socket->state() == QAbstractSocket::UnconnectedState || socket->waitForDisconnected(1000))
+        desconectar();
+}
 
 void Rec::on_actionSalir_triggered() { qApp->quit(); }
 
@@ -213,7 +339,8 @@ void Rec::on_actionDispositivos_triggered() {
 
     if (w.exec() == QDialog::Accepted) {
         preferencias.setValue("dispositivo", w.getDispositivo());
-        on_actionCapturar_triggered();
+        if (camara)
+            on_actionCapturar_triggered();
     }
 }
 

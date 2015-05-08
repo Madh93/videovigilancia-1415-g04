@@ -4,10 +4,15 @@
 Rec::Rec(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::Rec),
+    servidor(NULL),
     label(NULL) {
 
         ui->setupUi(this);
         crearLabel();
+
+        // Añadir información del estado del servidor
+        ui->statusBar->addWidget(&statusIzda);
+        ui->statusBar->addPermanentWidget(&statusDcha);
 }
 
 
@@ -15,6 +20,11 @@ Rec::~Rec() {
 
     delete ui;
     delete label;
+
+    if (servidor) {
+        delete servidor;
+        servidor = NULL;
+    }
 }
 
 
@@ -50,6 +60,44 @@ void Rec::crearLabel() {
     label->setPalette(paleta);
 
     ui->verticalLayoutPrincipal->addWidget(label);
+}
+
+
+void Rec::cerrarServidor() {
+
+    servidor->detener();
+
+    if (servidor) {
+        qDebug() << "DEBUGEANDO 1...";
+        servidor->close();
+        //qDebug() << "DEBUGEANDO 2...";
+        // disconnect(server, SIGNAL(newConnection()), this, SLOT(aceptarConexiones()));
+        // disconnect(server, SIGNAL(acceptError(QAbstractSocket::SocketError)),
+        //             this, SLOT(serverError(QAbstractSocket::SocketError)));
+        delete servidor;
+        //qDebug() << "DEBUGEANDO 3...";
+        servidor = NULL;
+    }
+}
+
+
+void Rec::recibirImagen(Captura captura) {
+
+    // Recuperar imagen
+    QImage img = QImage::fromData(reinterpret_cast<const uchar*>(captura.imagen().c_str()),
+                                  captura.imagen().size(),
+                                  "jpeg");
+    pixmap = QPixmap(QPixmap::fromImage(img));
+
+    // Añadir información
+    QPainter painter(&pixmap);
+    painter.setPen(Qt::red);
+    painter.setFont(QFont("",14));
+    painter.drawText(20,30,tr("Cliente: %1").arg(captura.usuario().c_str()));
+    painter.drawText(20,50,tr("Timestamp: %1").arg(captura.timestamp()));
+
+    // Mostrar imagen
+    label->setPixmap(pixmap);
 }
 
 
@@ -92,18 +140,45 @@ void Rec::guardarImagen(QPixmap imagen, QString usuario, uint timestamp) {
 
 void Rec::on_actionIniciarServidor_triggered() {
 
+    // Comprobar alguna instancia anterior
+    if (servidor)
+        cerrarServidor();
+
+    servidor = new Servidor(preferencias.value("puerto").toInt(),this);
+
+    // Iniciar servidor
+    if (!servidor->iniciar()) {
+        QMessageBox::critical(this, WINDOW_CRITICAL,
+                              tr("No se puede iniciar el servidor: %1.").arg(servidor->errorString()));
+        return;
+    }
+
+    // connect(server, SIGNAL(newConnection()), this, SLOT(aceptarConexiones()));
+    // connect(server, SIGNAL(acceptError(QAbstractSocket::SocketError)),
+    //         this, SLOT(serverError(QAbstractSocket::SocketError)));
+
+    // Ajustes
     activarFuncionalidades(true);
     this->setWindowTitle(WINDOW_TITLE_ON);
     label->setText("Servidor iniciado...");
+    statusIzda.setText("Dirección IP: " + servidor->serverAddress().toString());
+    statusDcha.setText("Puerto: " + QString::number(servidor->serverPort()));
+    connect(servidor, SIGNAL(nuevaImagen(Captura)), this, SLOT(recibirImagen(Captura)));
 }
 
 
 void Rec::on_actionCerrar_triggered() {
 
+    //qDebug() << "DEBUGEANDO 10...";
+    cerrarServidor();
+    //qDebug() << "DEBUGEANDO 20...";
+
+    // Ajustes
     activarFuncionalidades(false);
     this->setWindowTitle(WINDOW_TITLE_OFF);
     label->setText("Esperando a iniciar servidor...");
-
+    statusIzda.setText("");
+    statusDcha.setText("");
 }
 
 

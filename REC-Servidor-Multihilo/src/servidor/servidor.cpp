@@ -1,21 +1,53 @@
 #include "servidor.hpp"
 
 Servidor::Servidor(int port, QObject* parent):
-    QTcpServer(parent) {
+    QTcpServer(parent),
+    cliente(NULL) {
         puerto = port;
 }
 
 
-Servidor::~Servidor() {}
+Servidor::~Servidor() {
+
+    //qDebug() << "DEBUGEANDO 6...";
+
+    if (cliente) {
+        delete cliente;
+        cliente = NULL;
+    }
+    //qDebug() << "DEBUGEANDO 7...";
+}
 
 
-void Servidor::iniciarServidor() {
+void Servidor::recibirImagen(Captura img) {
+
+    qDebug() << img.usuario().c_str();
+
+    emit nuevaImagen(img);
+}
+
+
+bool Servidor::iniciar() {
 
     // Mantenerse a la escucha por el puerto establecido
-    if(!this->listen(QHostAddress::Any,puerto))
+    if(!this->listen(QHostAddress::Any,puerto)) {
         qDebug() << "No se ha podido iniciar el servidor";
-    else
+        return false;
+    }
+    else {
         qDebug() << "Servidor iniciado: escuchando por el puerto " << puerto << "...";
+        return true;
+    }
+}
+
+void Servidor::detener() {
+
+    //qDebug() << "DEBUGEANDO 4...";
+    //qDebug() << cliente->getSocket();
+    //if (cliente->getSocket() == NULL)
+    //cliente->getSocket()->disconnectFromHost();
+       // qDebug() << "DEBUGEANDO 5...";
+
 }
 
 
@@ -23,10 +55,14 @@ void Servidor::incomingConnection(qintptr descriptor) {
 
     qDebug() << descriptor << " iniciando conexión...";
 
-    Cliente *cliente = new Cliente(descriptor, this);
+    //Cliente *cliente = new Cliente(descriptor, this);
+    cliente = new Cliente(descriptor, this);
+
 
     // Eliminar cliente al finalizar la conexión
     connect(cliente, SIGNAL(finished()), cliente, SLOT(deleteLater()));
+    connect(cliente, SIGNAL(nuevaImagen(Captura)), this, SLOT(recibirImagen(Captura)));
+    //connect(cliente, SIGNAL(finished()), cliente, SLOT(desconectar()));
 
     cliente->start();
 }

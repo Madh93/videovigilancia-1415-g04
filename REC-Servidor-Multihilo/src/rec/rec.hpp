@@ -16,9 +16,12 @@
 #include <QSettings>
 #include <QTime>
 #include <QDir>
+#include <QBuffer>
 
 #include "acerca.hpp"
+#include "captura.pb.h"
 #include "puertoescucha.hpp"
+#include "servidor.hpp"
 
 namespace Ui {
     class Rec;
@@ -31,13 +34,20 @@ class Rec : public QMainWindow {
     private:
 
         Ui::Rec *ui;
+        Servidor *servidor;
         QLabel *label;
+        QLabel statusIzda, statusDcha;
         QSettings preferencias;
         QPixmap pixmap;
 
         void activarFuncionalidades(bool cond);
         void crearLabel();
+        void cerrarServidor();
         void guardarImagen(QPixmap imagen, QString usuario, uint timestamp);
+
+    public slots:
+
+        void recibirImagen(Captura captura);
 
     private slots:
 

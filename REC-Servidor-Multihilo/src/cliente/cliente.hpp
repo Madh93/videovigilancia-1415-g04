@@ -3,6 +3,8 @@
 
 #include <QThread>
 #include <QTcpSocket>
+#include <QImage>
+#include "captura.pb.h"
 #include <QDebug>
 
 class Cliente : public QThread {
@@ -17,11 +19,12 @@ class Cliente : public QThread {
     signals:
 
         void error(QTcpSocket::SocketError socketerror);
+        void nuevaImagen(Captura);
 
     public slots:
 
         void leer();
-        void desconectado();
+        void desconectar();
 
     public:
 
@@ -29,6 +32,7 @@ class Cliente : public QThread {
         ~Cliente();
 
         void run();
+        QTcpSocket* getSocket();
 };
 
 #endif // CLIENTE_HPP

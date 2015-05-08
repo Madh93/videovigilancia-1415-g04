@@ -15,9 +15,13 @@
 #include <QPainter>
 #include <QSettings>
 #include <QTime>
+#include <QTcpSocket>
+#include <QAbstractSocket>
+#include <QBuffer>
 
 #include "acerca.hpp"
 #include "capturebuffer.hpp"
+#include "captura.pb.h"
 #include "conexion.hpp"
 #include "dispositivos.hpp"
 
@@ -34,17 +38,25 @@ class Rec : public QMainWindow {
         Ui::Rec *ui;
         QCamera *camara;
         CaptureBuffer *buffer;
+        QTcpSocket *socket;
         QLabel *label;
+        QLabel statusIzda;
         QSettings preferencias;
         QPixmap pixmap;
+        bool conectado;
 
         void activarFuncionalidades(bool cond);
         void crearLabel();
         void limpiarCamara();
+        void limpiarSocket();
+        void conectarConServidor();
 
     private slots:
 
         void actualizarImagen(QImage imagen);
+        void iniciarCamara();
+        void desconectar();
+        void socketError(QAbstractSocket::SocketError error);
 
         // Archivo
         void on_actionCapturar_triggered();
