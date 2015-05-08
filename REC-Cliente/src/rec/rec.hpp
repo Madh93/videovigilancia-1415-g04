@@ -15,6 +15,7 @@
 #include <QPainter>
 #include <QSettings>
 #include <QTime>
+#include <QTcpSocket>
 
 #include "acerca.hpp"
 #include "capturebuffer.hpp"
@@ -44,10 +45,13 @@ class Rec : public QMainWindow {
         QSettings preferencias;
         QPixmap pixmap;
         cv::BackgroundSubtractorMOG2 backgroundSubtractor;
+        QTcpSocket *cliente;
+        bool conectado_;
 
         void activarFuncionalidades(bool cond);
         void crearLabel();
         void limpiarCamara();
+        bool detectar_movimiento(QImage *imagen);
 
     private slots:
 

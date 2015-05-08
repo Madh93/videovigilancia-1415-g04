@@ -7,6 +7,8 @@ Rec::Rec(QWidget *parent) :
     camara(NULL),
     buffer(NULL),
     label(NULL),
+    cliente(NULL),
+    conectado_(false),
     backgroundSubtractor(500,16,false) {
 
         ui->setupUi(this);
@@ -90,12 +92,10 @@ void Rec::limpiarCamara() {
  SLOTS
 **************************/
 
-void Rec::actualizarImagen(QImage imagen){
-
-
+bool Rec::detectar_movimiento(QImage *imagen){
 
     cv::Mat images;
-    images=QtOcv::image2Mat(imagen);
+    images=QtOcv::image2Mat(*imagen);
             /*cv::Mat image2Mat(const QImage &img,
                                   int channels = 0,
                                   MatChannelOrder rgbOrder = MCO_BGR);
@@ -156,10 +156,19 @@ void Rec::actualizarImagen(QImage imagen){
                //cv::rectangle(images,rectangulo,cv::Scalar(0,255,0),2);
                //cv::rectangle(images,boxes,cv::Scalar(0,255,0),2);
 
-    imagen=QtOcv::mat2Image(images);
+    *imagen=QtOcv::mat2Image(images);
+
+    return movimiento;
+
+}
 
 
 
+void Rec::actualizarImagen(QImage imagen){
+
+    bool movimiento= detectar_movimiento(&imagen);
+
+    qDebug() << movimiento;
 
     pixmap = QPixmap(QPixmap::fromImage(imagen.scaled(label->size())));
 
