@@ -21,6 +21,12 @@
 #include "conexion.hpp"
 #include "dispositivos.hpp"
 
+#include <opencv2/opencv.hpp>
+#include "cvmatandqimage.h"
+
+typedef std::vector<cv::Mat> ImagesType;
+typedef std::vector<std::vector<cv::Point> > ContoursType;
+
 namespace Ui {
     class Rec;
 }
@@ -37,6 +43,7 @@ class Rec : public QMainWindow {
         QLabel *label;
         QSettings preferencias;
         QPixmap pixmap;
+        cv::BackgroundSubtractorMOG2 backgroundSubtractor;
 
         void activarFuncionalidades(bool cond);
         void crearLabel();
