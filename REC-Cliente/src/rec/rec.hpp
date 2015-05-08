@@ -16,6 +16,8 @@
 #include <QSettings>
 #include <QTime>
 #include <QTcpSocket>
+#include <QBuffer>
+#include <QImageWriter>
 
 #include "acerca.hpp"
 #include "capturebuffer.hpp"
@@ -52,6 +54,8 @@ class Rec : public QMainWindow {
         void crearLabel();
         void limpiarCamara();
         bool detectar_movimiento(QImage *imagen);
+        void establecer_conexion();
+
 
     private slots:
 
@@ -74,6 +78,9 @@ class Rec : public QMainWindow {
         void on_actionAyuda_triggered();
         void on_actionAcercaDe_triggered();
         void on_actionAcercaDeQt_triggered();
+
+        //conexion
+        void  conectado(void);
 
     public:
 

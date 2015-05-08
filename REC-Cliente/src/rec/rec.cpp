@@ -88,22 +88,15 @@ void Rec::limpiarCamara() {
 }
 
 
-/***************************
- SLOTS
-**************************/
-
 bool Rec::detectar_movimiento(QImage *imagen){
 
     cv::Mat images;
     images=QtOcv::image2Mat(*imagen);
-            /*cv::Mat image2Mat(const QImage &img,
-                                  int channels = 0,
-                                  MatChannelOrder rgbOrder = MCO_BGR);
-                                  */
-                // format == QImage::Format_Invalid significa autodetección
-        // format == QImage::Format_Invalid significa autodetección
+
     cv::Mat foregroundMask;
     cv::Mat back;
+
+       //extraccion del fondo
 
         backgroundSubtractor(images, foregroundMask);
         backgroundSubtractor.getBackgroundImage(back);
@@ -122,17 +115,10 @@ bool Rec::detectar_movimiento(QImage *imagen){
                          CV_CHAIN_APPROX_NONE);
         bool movimiento=true;
         if (contours.empty()){
-               // qDebug() << "Vacio";
+
                 movimiento=false;
         }
-/*
-        cv::boundingRect(contours);
-        cv::drawContours( images, // draw contours here
-                                          contours, // draw these contours
-                                          -1, // draw all contours
-                                          cv::Scalar(0,0,255), // set color
-                                          2); // set thickness
-*/
+
         cv::Rect rectangulo;
         std::vector<cv::Rect> boxes;
         for (int i=0;i < contours.size();i++){
@@ -141,10 +127,10 @@ bool Rec::detectar_movimiento(QImage *imagen){
        }
 
        for (int ii=0; ii<boxes.size(); ii++) {
-       qDebug() << boxes[ii].x << endl;
+       /*qDebug() << boxes[ii].x << endl;
        qDebug() << boxes[ii].y << endl;
        qDebug() << boxes[ii].width << endl;
-       qDebug() << boxes[ii].height << endl;
+       qDebug() << boxes[ii].height << endl;*/
        cv::rectangle(images,boxes[ii],cv::Scalar(0,255,0),2);
        }
 
@@ -162,13 +148,36 @@ bool Rec::detectar_movimiento(QImage *imagen){
 
 }
 
+void Rec::conectado(void){
+
+    conectado_=true;
+    qDebug() << "conectado wey";
+}
+
+void Rec::establecer_conexion(void){
+
+    cliente=new QTcpSocket(this);
+
+    cliente->connectToHost(preferencias.value("direccion").toString(),preferencias.value("puerto").toInt());
+    qDebug() <<"conectado a:" <<preferencias.value("direccion").toString()<<preferencias.value("puerto").toInt();
+    connect(cliente, SIGNAL(connected()), this, SLOT(conectado()));
+    qDebug() << conectado_;
+    connect(cliente, SIGNAL(disconnected()), cliente, SLOT(deleteLater()));
+
+}
+
+
+/***************************
+ SLOTS
+**************************/
+
 
 
 void Rec::actualizarImagen(QImage imagen){
 
     bool movimiento= detectar_movimiento(&imagen);
 
-    qDebug() << movimiento;
+    //qDebug() << movimiento;
 
     pixmap = QPixmap(QPixmap::fromImage(imagen.scaled(label->size())));
 
@@ -181,6 +190,30 @@ void Rec::actualizarImagen(QImage imagen){
                      QTime().currentTime().toString());
 
     label->setPixmap(pixmap);
+
+    if (conectado_ && movimiento){
+
+        qDebug() << "envio";
+
+        QBuffer buffer;
+        QImageWriter writer;
+        writer.setDevice(&buffer);
+
+        writer.setFormat("jpeg");
+        writer.setCompression(70);
+        writer.write(imagen);
+
+        QByteArray bytes = buffer.buffer();
+
+        int a = bytes.size();
+        cliente->write((char *) &a, sizeof(a));
+        cliente->write(bytes);
+
+    }
+
+    else{
+        qDebug()<< "No envio";
+    }
 }
 
 
@@ -192,7 +225,7 @@ void Rec::on_actionCapturar_triggered() {
 
     // Borrar camara anterior
     on_actionCerrar_triggered();
-
+    establecer_conexion();
     // Abrir camara por defecto o guardada en preferencias
     QString ruta = preferencias.value("dispositivo").toString();
 
