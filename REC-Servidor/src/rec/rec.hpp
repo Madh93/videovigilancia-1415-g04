@@ -22,6 +22,7 @@
 
 #include "acerca.hpp"
 #include "puertoescucha.hpp"
+#include "usuario.h"
 
 namespace Ui {
     class Rec;
@@ -41,6 +42,7 @@ class Rec : public QMainWindow {
         QTcpSocket *cliente;
         int bytes_a;
         int estado;
+        QVector<usuario*> users;
 
         void activarFuncionalidades(bool cond);
         void crearLabel();
