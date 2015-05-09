@@ -39,9 +39,6 @@ class Rec : public QMainWindow {
         QSettings preferencias;
         QPixmap pixmap;
         QTcpServer *servidor;
-        QTcpSocket *cliente;
-        int bytes_a;
-        int estado;
         QVector<usuario*> users;
 
         void activarFuncionalidades(bool cond);
@@ -70,7 +67,6 @@ class Rec : public QMainWindow {
         //conexion
 
         void nueva_conexion();
-        void leer_datos();
 
     public:
 

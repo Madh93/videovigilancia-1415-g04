@@ -26,6 +26,7 @@ private:
     int id;
     int estado;
     int bytes_a;
+    char tipo_dato;
     static int n_users;
     QTcpSocket *cliente;
     QLabel *video;

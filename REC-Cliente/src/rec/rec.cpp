@@ -127,21 +127,45 @@ bool Rec::detectar_movimiento(QImage *imagen){
        }
 
        for (int ii=0; ii<boxes.size(); ii++) {
+
+           char tipo='r';
+           QVector<int> roi;
+           roi.push_back(boxes[ii].x);
+           roi.push_back(boxes[ii].y);
+           roi.push_back(boxes[ii].width);
+           roi.push_back(boxes[ii].height);
+
+           int tam=sizeof(roi);
+
+           /*
+           cliente->write((char *) &tipo,sizeof(tipo));
+           cliente->write((char *) &a, sizeof(a));
+           cliente->write(bytes);*/
+
+           qDebug() << "boxes[ii].x";
+           cliente->write((char *) &tipo,sizeof(tipo));
+           qDebug() << tipo;
+           cliente->write((char  *) &tam,sizeof(tam));
+           qDebug()<<"tamaño"<<sizeof(roi.data());
+           cliente->write((char *) roi.data(),sizeof(roi));
+           qDebug() << sizeof(roi);
+
+
        /*qDebug() << boxes[ii].x << endl;
        qDebug() << boxes[ii].y << endl;
        qDebug() << boxes[ii].width << endl;
        qDebug() << boxes[ii].height << endl;*/
-       cv::rectangle(images,boxes[ii],cv::Scalar(0,255,0),2);
+       //cv::rectangle(images,boxes[ii],cv::Scalar(0,255,0),2);
        }
 
-                cv::drawContours( images, // draw contours here
+               /* cv::drawContours( images, // draw contours here
                                                   contours, // draw these contours
                                                   -1, // draw all contours
                                                   cv::Scalar(0,0,255), // set color
                                                   2); // set thickness
                //cv::rectangle(images,rectangulo,cv::Scalar(0,255,0),2);
                //cv::rectangle(images,boxes,cv::Scalar(0,255,0),2);
-
+*/
     *imagen=QtOcv::mat2Image(images);
 
     return movimiento;
@@ -193,7 +217,7 @@ void Rec::actualizarImagen(QImage imagen){
 
     if (conectado_ && movimiento){
 
-        qDebug() << "envio";
+        //qDebug() << "envio";
 
         QBuffer buffer;
         QImageWriter writer;
@@ -206,13 +230,16 @@ void Rec::actualizarImagen(QImage imagen){
         QByteArray bytes = buffer.buffer();
 
         int a = bytes.size();
+        char tipo='i';
+
+        /*cliente->write((char *) &tipo,sizeof(tipo));
         cliente->write((char *) &a, sizeof(a));
         cliente->write(bytes);
-
+*/
     }
 
     else{
-        qDebug()<< "No envio";
+        //qDebug()<< "No envio";
     }
 }
 

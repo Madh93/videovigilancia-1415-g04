@@ -7,6 +7,7 @@ usuario::usuario(QObject *parent) : QObject(parent)
     cliente=NULL;
     bytes_a=0;
     mi_vid=NULL;
+    //tipo_dato=" ";
 }
 
 
@@ -63,47 +64,91 @@ void usuario::leer_datos(){
 //    qDebug()<<"TODO GUAY";
     while(true){
 
-    if (estado==0 && cliente->bytesAvailable()>=sizeof(bytes_a)){
+        if (estado==0 && cliente->bytesAvailable()>=sizeof(tipo_dato)){
 
-        cliente->read((char *) &bytes_a,sizeof(bytes_a));
-        estado=1;
-    }/*else
-        break;
-*/
-    qDebug()<<"bytes a" <<bytes_a;
-    qDebug()<<"bytes disponibles"<<cliente->bytesAvailable();
-    qDebug()<<"estado"<<estado;
-
-    if (estado==1 && cliente->bytesAvailable()>=bytes_a){
-qDebug() <<  "cliente->bytesAvailable()";
+            cliente->read((char *) &tipo_dato,sizeof(tipo_dato));
+            //cliente->read()
+            qDebug() <<"tipo" << tipo_dato;
+            estado=1;
 
 
-        estado=0;
+        }else
+            break;
 
-    QByteArray byte = cliente->read(bytes_a);
-    qDebug() <<  "LEíDO";
-    QImage imagen;
-    imagen.loadFromData(byte,"JPEG");
-    QPixmap pixmap;
-    pixmap.convertFromImage(imagen);
+    if (tipo_dato=='i'){ //si lo que recibe es una imagen
 
-    //video->setPixmap(pixmap);
+        if (estado==1 && cliente->bytesAvailable()>=sizeof(bytes_a)){
+
+            cliente->read((char *) &bytes_a,sizeof(bytes_a));
+            estado=2;
+        }else
+            break;
+
+        qDebug()<<"bytes a" <<bytes_a;
+        qDebug()<<"bytes disponibles"<<cliente->bytesAvailable();
+        qDebug()<<"estado"<<estado;
+
+        if (estado==2 && cliente->bytesAvailable()>=bytes_a){
+            qDebug() <<  "cliente->bytesAvailable()";
 
 
-    if (id==n_users-1)
-        video->setPixmap(pixmap);
-    else{
-        if (mi_vid==NULL){
-            mi_vid= new QLabel();
-            //mi_vid->show();
-        }
-        mi_vid->setPixmap(pixmap);
-        mi_vid->show();
-    }
+            estado=0;
+            tipo_dato=' ';
+                QByteArray byte = cliente->read(bytes_a);
+                qDebug() <<  "LEíDO";
+                QImage imagen;
+                imagen.loadFromData(byte,"JPEG");
+                QPixmap pixmap;
+                pixmap.convertFromImage(imagen);
+
+            //video->setPixmap(pixmap);
+
+
+                if (id==n_users-1)
+                    video->setPixmap(pixmap);
+                else{
+                    if (mi_vid==NULL){
+                        mi_vid= new QLabel();
+                        //mi_vid->show();
+                }
+                mi_vid->setPixmap(pixmap);
+                mi_vid->show();
+            }
+
 
     }else
         break;
 
-    }
 
+        }else
+            if (tipo_dato=='r'){
+                qDebug() << cliente->bytesAvailable()<<"disp";
+                if (estado==1 && cliente->bytesAvailable()>=sizeof(bytes_a)){
+
+                    cliente->read((char *) &bytes_a,sizeof(bytes_a));
+                    estado=2;
+                    qDebug()<<"bytes aaaa" <<bytes_a;
+
+                }else
+                    break;
+
+            qDebug()<<"bytes a" <<bytes_a;
+            qDebug()<<"bytes disponibles"<<cliente->bytesAvailable();
+            qDebug()<<"estado"<<estado;
+
+                if (estado==2 && cliente->bytesAvailable()>=bytes_a){
+                    qDebug() <<  bytes_a;
+                    qDebug()<<"bytes_aaavailables"<< cliente->bytesAvailable();
+
+
+                    estado=0;
+                    tipo_dato=' ';
+                    QVector<int> roi;
+                    cliente->read((char *) roi.data(),sizeof(bytes_a));
+                    qDebug() <<  "roi " << roi;
+                }else
+                    break;
+            }
+    }
 }
+
