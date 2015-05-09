@@ -35,8 +35,9 @@ Rec::~Rec() {
     }
 
     if (socket) {
-        delete socket;
-        socket = NULL;
+        //delete socket;
+        //socket = NULL;
+        socket->deleteLater();
     }
 }
 
@@ -172,7 +173,7 @@ void Rec::actualizarImagen(QImage imagen){
         socket->write(reinterpret_cast<char*>(&size), sizeof(size));
         socket->write(datos.c_str(), size);
 
-        socket->waitForBytesWritten();
+        socket->waitForBytesWritten(10);
 
         qDebug() << "Envia";
     }

@@ -17,6 +17,7 @@
 #include <QTime>
 #include <QDir>
 #include <QBuffer>
+#include <QListWidget>
 
 #include "acerca.hpp"
 #include "captura.pb.h"
@@ -36,18 +37,21 @@ class Rec : public QMainWindow {
         Ui::Rec *ui;
         Servidor *servidor;
         QLabel *label;
+        QListWidget *conectados;
         QLabel statusIzda, statusDcha;
         QSettings preferencias;
         QPixmap pixmap;
 
         void activarFuncionalidades(bool cond);
         void crearLabel();
+        void crearConectados();
         void cerrarServidor();
         void guardarImagen(QPixmap imagen, QString usuario, uint timestamp);
 
     public slots:
 
         void recibirImagen(Captura captura);
+        void nuevoCliente(int cliente);
 
     private slots:
 

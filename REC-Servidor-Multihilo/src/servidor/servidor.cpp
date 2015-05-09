@@ -21,8 +21,6 @@ Servidor::~Servidor() {
 
 void Servidor::recibirImagen(Captura img) {
 
-    qDebug() << img.usuario().c_str();
-
     emit nuevaImagen(img);
 }
 
@@ -51,6 +49,14 @@ void Servidor::detener() {
 }
 
 
+
+
+Cliente* Servidor::getCliente() {
+
+    return cliente;
+}
+
+
 void Servidor::incomingConnection(qintptr descriptor) {
 
     qDebug() << descriptor << " iniciando conexión...";
@@ -64,5 +70,10 @@ void Servidor::incomingConnection(qintptr descriptor) {
     connect(cliente, SIGNAL(nuevaImagen(Captura)), this, SLOT(recibirImagen(Captura)));
     //connect(cliente, SIGNAL(finished()), cliente, SLOT(desconectar()));
 
+    emit nuevoCliente(clientes.size()+1);
+
     cliente->start();
+
+    clientes.push_back(cliente);
+    qDebug() << clientes.size() << " clientes conectados.";
 }

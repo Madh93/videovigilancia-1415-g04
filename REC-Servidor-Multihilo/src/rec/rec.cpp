@@ -5,10 +5,12 @@ Rec::Rec(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::Rec),
     servidor(NULL),
-    label(NULL) {
+    label(NULL),
+    conectados(NULL) {
 
         ui->setupUi(this);
         crearLabel();
+        crearConectados();
 
         // Añadir información del estado del servidor
         ui->statusBar->addWidget(&statusIzda);
@@ -59,7 +61,34 @@ void Rec::crearLabel() {
     paleta.setColor(QPalette::WindowText, Qt::white);
     label->setPalette(paleta);
 
-    ui->verticalLayoutPrincipal->addWidget(label);
+    ui->horizontalLayoutPrincipal->addWidget(label);
+}
+
+
+void Rec::crearConectados() {
+
+    if (conectados) {
+        delete conectados;
+        conectados = NULL;
+    }
+
+    // Crear lista de conectados
+    conectados = new QListWidget;
+    conectados->setSizeAdjustPolicy(QAbstractScrollArea::AdjustToContents);
+    conectados->setResizeMode(QListView::Adjust);
+    conectados->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
+//    label->setText("Esperando a iniciar servidor...");
+//    label->setAutoFillBackground(true);
+//    label->setAlignment(Qt::AlignCenter);
+//    label->setSizePolicy(QSizePolicy::Ignored,QSizePolicy::Ignored);
+
+    // Añadir color de fondo
+//    QPalette paleta = this->palette();
+//    paleta.setColor(QPalette::Background, QColor(90,90,90));
+//    paleta.setColor(QPalette::WindowText, Qt::white);
+//    label->setPalette(paleta);
+
+    ui->horizontalLayoutPrincipal->addWidget(conectados);
 }
 
 
@@ -98,6 +127,19 @@ void Rec::recibirImagen(Captura captura) {
 
     // Mostrar imagen
     label->setPixmap(pixmap);
+}
+
+
+void Rec::nuevoCliente(int cliente) {
+
+        //qDebug() << "mostrar en lista";
+//    QListWidgetItem item(QString(cliente));
+//    qDebug() << cliente;
+//    qDebug() << QString(cliente);
+    QListWidgetItem *item = new QListWidgetItem(QString::number(cliente),conectados);
+//    item->setData(Qt::UserRole, QVariant(1));
+    //conectados->addItem(&item);
+    //conectados->setItemWidget(&item,this);
 }
 
 
@@ -163,7 +205,9 @@ void Rec::on_actionIniciarServidor_triggered() {
     label->setText("Servidor iniciado...");
     statusIzda.setText("Dirección IP: " + servidor->serverAddress().toString());
     statusDcha.setText("Puerto: " + QString::number(servidor->serverPort()));
+    //connect(servidor->getCliente(), SIGNAL(nuevaImagen(Captura)), this, SLOT(recibirImagen(Captura)));
     connect(servidor, SIGNAL(nuevaImagen(Captura)), this, SLOT(recibirImagen(Captura)));
+    connect(servidor, SIGNAL(nuevoCliente(int)), this, SLOT(nuevoCliente(int)));
 }
 
 

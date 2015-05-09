@@ -17,9 +17,10 @@ Cliente::~Cliente() {
         //qDebug() << "DEBUGEANDO 82...";
         if (socket->state() == QAbstractSocket::UnconnectedState || socket->waitForDisconnected(1000)) {
           //  qDebug() << "DEBUGEANDO 83...";
-            delete socket;
+            //delete socket;
             //qDebug() << "DEBUGEANDO 84...";
-            socket = NULL;
+            //socket = NULL;
+            socket->deleteLater();
         }
     }
 
@@ -33,16 +34,17 @@ Cliente::~Cliente() {
 
 void Cliente::leer() {
 
-    qDebug() << "Lee";
+    //qDebug() << "Lee";
 
     // Recibir mensaje serializado (tamaño+mensaje)
     int size;
     std::string datos;
 
+    socket->waitForReadyRead(10);
     socket->read(reinterpret_cast<char*>(&size),sizeof(size));
     datos.resize(size);
     socket->read(const_cast<char*>(datos.c_str()), (qint64)size);
-    socket->waitForReadyRead(-1);
+    //socket->waitForReadyRead(-1);
 
     // Deserializar mensaje
     Captura captura;
