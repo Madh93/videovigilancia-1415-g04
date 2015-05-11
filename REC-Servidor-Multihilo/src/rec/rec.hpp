@@ -16,7 +16,6 @@
 #include <QSettings>
 #include <QTime>
 #include <QDir>
-#include <QBuffer>
 #include <QListWidget>
 
 #include "acerca.hpp"
@@ -50,7 +49,7 @@ class Rec : public QMainWindow {
     public slots:
 
         void recibirImagen(Captura captura);
-        void nuevoCliente(QString id);
+        void nuevoCliente(int cliente);
         void clienteDesconectado(int cliente);
 
     private slots:

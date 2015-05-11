@@ -28,6 +28,7 @@ class Dispositivos : public QDialog {
         ~Dispositivos();
 
         QString getDispositivo();
+        QString getNombreDispositivo();
 };
 
 #endif // DISPOSITIVOS_HPP

@@ -77,6 +77,7 @@ void Rec::crearConectados() {
     conectados->setSizeAdjustPolicy(QAbstractScrollArea::AdjustToContents);
     conectados->setResizeMode(QListView::Adjust);
     conectados->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
+    conectados->setMaximumWidth(25);
     conectados->setCurrentRow(0);
 
     ui->horizontalLayoutPrincipal->addWidget(conectados);
@@ -128,11 +129,6 @@ void Rec::guardarImagen(QPixmap imagen, QString usuario, uint timestamp) {
 
 void Rec::recibirImagen(Captura captura) {
 
-    // Asignar nombre en la lista de conectados
-    if (conectados->currentItem())
-        conectados->currentItem()->setText(servidor->clienteActual()->getId());
-    qDebug() << conectados->currentItem();
-
     if (captura.IsInitialized()) {
 
         // Recuperar imagen
@@ -144,23 +140,21 @@ void Rec::recibirImagen(Captura captura) {
         // Añadir información
         QPainter painter(&pixmap);
         painter.setPen(Qt::red);
-        painter.setFont(QFont("",14));
-        painter.drawText(20,30,tr("Cliente: %1").arg(captura.usuario().c_str()));
-        painter.drawText(20,50,tr("Timestamp: %1").arg(captura.timestamp()));
+        painter.setFont(QFont("",11));
+        painter.drawText(15,15,tr("Cliente: %1").arg(captura.usuario().c_str()));
+        painter.drawText(15,30,tr("Dispositivo: %1").arg(captura.dispositivo().c_str()));
+        painter.drawText(15,45,tr("Timestamp: %1").arg(captura.timestamp()));
 
         // Mostrar imagen
         label->setPixmap(pixmap);
-    }
-
-    else
-        label->setText("No se puede obtener ninguna imagen...");
+    }   
 }
 
 
-void Rec::nuevoCliente(QString id) {
+void Rec::nuevoCliente(int cliente) {
 
     QListWidgetItem *item = new QListWidgetItem;
-    item->setText(id);
+    item->setText(QString::number(cliente));
     conectados->addItem(item);
 }
 
@@ -168,7 +162,8 @@ void Rec::nuevoCliente(QString id) {
 void Rec::clienteDesconectado(int cliente) {
 
     conectados->takeItem(cliente);
-    label->setText("No se puede obtener ninguna imagen...");
+    label->setText(QString("Servidor iniciado...\nCliente %1: desconectado.").
+                   arg(conectados->currentRow()+2));
 }
 
 
@@ -177,6 +172,8 @@ void Rec::clienteDesconectado(int cliente) {
 **************************/
 
 void Rec::on_actionIniciarServidor_triggered() {
+
+    qDebug() << ("Iniciando servidor...");
 
     // Comprobar alguna instancia anterior
     if (servidor)
@@ -200,7 +197,7 @@ void Rec::on_actionIniciarServidor_triggered() {
 
     // Señales y slots
     connect(servidor, SIGNAL(nuevaImagen(Captura)), this, SLOT(recibirImagen(Captura)));
-    connect(servidor, SIGNAL(nuevoCliente(QString)), this, SLOT(nuevoCliente(QString)));
+    connect(servidor, SIGNAL(nuevoCliente(int)), this, SLOT(nuevoCliente(int)));
     connect(servidor, SIGNAL(clienteDesconectado(int)), this, SLOT(clienteDesconectado(int)));
     connect(conectados, SIGNAL(currentRowChanged(int)), servidor, SLOT(setActual(int)));
 }

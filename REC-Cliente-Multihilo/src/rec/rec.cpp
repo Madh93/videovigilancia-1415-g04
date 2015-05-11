@@ -16,6 +16,9 @@ Rec::Rec(QWidget *parent) :
         // Añadir información de estado
         ui->statusBar->addWidget(&statusIzda);
         statusIzda.setText("Desconectado");
+
+        if (preferencias.value("nombre-dispostivo").toString() == "")
+            preferencias.setValue("nombre-dispositivo", "Predeterminado");
 }
 
 
@@ -148,7 +151,7 @@ void Rec::actualizarImagen(QImage imagen){
         captura.set_usuario(preferencias.value("usuario").toString().toStdString());
         captura.set_timestamp(QDateTime::currentDateTime().toTime_t());
         captura.set_imagen(img_buff.buffer().constData(), img_buff.buffer().size());
-        captura.set_dispositivo(preferencias.value("dispositivo").toString().toStdString());
+        captura.set_dispositivo(preferencias.value("nombre-dispositivo").toString().toStdString());
 
         // Serializar el mensaje
         std::string datos;
@@ -194,29 +197,27 @@ void Rec::desconectar() {
 
 void Rec::socketError(QAbstractSocket::SocketError error) {
 
+    desconectar();
+
     switch (error) {
 
         case QAbstractSocket::ConnectionRefusedError :
             QMessageBox::warning(this, WINDOW_WARNING,
                                  "No se ha encontrado el servidor.\nComprueba la dirección y el puerto.");
-            limpiarSocket();
             break;
 
         case QAbstractSocket::HostNotFoundError :
             QMessageBox::warning(this, WINDOW_WARNING,
                                  "Dirección del servidor errónea.\nComprueba la dirección y el puerto.");
-            limpiarSocket();
             break;
 
         case QAbstractSocket::RemoteHostClosedError :
             QMessageBox::warning(this, WINDOW_WARNING,
                                  "El servidor ha cerrado la conexión.");
-            desconectar();
             break;
 
-        default : break;
+        default: ;
     }
-
 }
 
 
@@ -327,6 +328,7 @@ void Rec::on_actionDispositivos_triggered() {
 
     if (w.exec() == QDialog::Accepted) {
         preferencias.setValue("dispositivo", w.getDispositivo());
+        preferencias.setValue("nombre-dispositivo", w.getNombreDispositivo());
         if (camara)
             on_actionCapturar_triggered();
     }

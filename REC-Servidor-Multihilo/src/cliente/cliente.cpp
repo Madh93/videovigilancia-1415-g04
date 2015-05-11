@@ -37,18 +37,17 @@ void Cliente::leerDatos() {
 
     // Esperar a que se hayan recibido los datos antes de leerlos
     socket->waitForReadyRead(-1);
-    //socket->waitForReadyRead(100);
     socket->read(reinterpret_cast<char*>(&size),sizeof(size));
     try {
         datos.resize(size); // FALLA A MENUDO
     } catch (const std::length_error&) {
-        qDebug() << "length error";
+        qDebug() << "OJO: length error";
     }
-    socket->read(const_cast<char*>(datos.c_str()), (qint64)size);
+    if (socket->read(const_cast<char*>(datos.c_str()), (qint64)size) < 0)
+        return;
 
     // Deserializar mensaje
-    if (!captura.ParseFromString(datos))
-        return;
+    captura.ParseFromString(datos);
 
     emit nuevaImagen();
 }
@@ -70,7 +69,7 @@ void Cliente::run() {
     }
     mutex.unlock();
 
-    qDebug() << "El cliente " << descriptor << " se ha conectado.";
+    qDebug() << "El cliente" << descriptor << "se ha conectado.";
 
     while (1) {
 
@@ -86,9 +85,9 @@ void Cliente::run() {
     mutex.lock();   // ¿Lock y Unlock, o sigue en pie Locker?
     socket->disconnectFromHost();
     if (socket->state() != QAbstractSocket::UnconnectedState)
-        if (socket->waitForDisconnected(-1)) {
-            qDebug() << "El cliente " << descriptor << " se ha desconectado.";
-        }
+        if (socket->waitForDisconnected(-1))
+            qDebug() << "El cliente" << descriptor << "se ha desconectado.";
+    socket->deleteLater();
     qRegisterMetaType<Cliente*>("Cliente");
     emit desconectado(this);
     mutex.unlock();
@@ -97,7 +96,7 @@ void Cliente::run() {
 
 void Cliente::desconectar() {
 
-    QMutexLocker locker(&mutex);
+    //QMutexLocker locker(&mutex);  // Tiempo de espera MUY Largo (10 segundos)
     finalizar = true;
 }
 

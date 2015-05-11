@@ -17,7 +17,6 @@ Servidor::~Servidor() {
 }
 
 
-
 /***************************
  SLOTS
 **************************/
@@ -25,11 +24,12 @@ Servidor::~Servidor() {
 void Servidor::desconectado(Cliente* cliente) {
 
     int pos = clientes.indexOf(cliente);
+    qDebug() << "El cliente " << clientes[pos]->getDescriptor() << " se ha desconectado.";
+
     emit clienteDesconectado(pos);
+
     clientes.removeOne(cliente);
     cliente->desconectar();
-//    cliente->deleteLater();
-
 }
 
 void Servidor::recibirImagen() {
@@ -57,7 +57,7 @@ bool Servidor::iniciar() {
         return false;
     }
     else {
-        qDebug() << "Servidor iniciado: escuchando por el puerto " << puerto << "...";
+        qDebug() << "Servidor iniciado: escuchando por el puerto" << puerto << "...";
         return true;
     }
 }
@@ -94,7 +94,7 @@ int Servidor::clientesConectados() {
 
 void Servidor::incomingConnection(qintptr descriptor) {
 
-    qDebug() << descriptor << " iniciando conexión...";
+    qDebug() << descriptor << "iniciando conexión...";
 
     Cliente *cliente = new Cliente(descriptor, this);
     clientes.push_back(cliente);
@@ -108,9 +108,9 @@ void Servidor::incomingConnection(qintptr descriptor) {
     cliente->start();
 
     if (clientes.size() == 1)
-        qDebug() << clientes.size() << " cliente conectado actualmente.";
+        qDebug() << clientes.size() << "cliente conectado actualmente.";
     else
-        qDebug() << clientes.size() << " clientes conectados actualmente.";
+        qDebug() << clientes.size() << "clientes conectados actualmente.";
 
-    emit nuevoCliente(cliente->getId());
+    emit nuevoCliente(clientes.size());
 }

@@ -47,3 +47,10 @@ QString Dispositivos::getDispositivo() {
 
     return (index == 0) ? "" : dispositivos[index-1].deviceName();
 }
+
+QString Dispositivos::getNombreDispositivo() {
+
+    int index = ui->comboBox->currentIndex();
+
+    return (index == 0) ? "" : dispositivos[index-1].description();
+}

@@ -20,7 +20,8 @@ QList<QVideoFrame::PixelFormat> CaptureBuffer::supportedPixelFormats(
                     << QVideoFrame::Format_RGB32
                     << QVideoFrame::Format_RGB24
                     << QVideoFrame::Format_RGB565
-                    << QVideoFrame::Format_RGB555;
+                    << QVideoFrame::Format_RGB555
+                    << QVideoFrame::Format_Jpeg;
     }
 }
 

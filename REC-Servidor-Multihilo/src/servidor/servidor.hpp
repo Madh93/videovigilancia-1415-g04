@@ -19,7 +19,7 @@ class Servidor : public QTcpServer {
     signals:
 
         void nuevaImagen(Captura);
-        void nuevoCliente(QString);
+        void nuevoCliente(int);
         void clienteDesconectado(int);
 
     public slots:
