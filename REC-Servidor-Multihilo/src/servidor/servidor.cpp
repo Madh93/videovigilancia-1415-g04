@@ -112,5 +112,5 @@ void Servidor::incomingConnection(qintptr descriptor) {
     else
         qDebug() << clientes.size() << " clientes conectados actualmente.";
 
-    emit nuevoCliente(clientes.size());
+    emit nuevoCliente(cliente->getId());
 }

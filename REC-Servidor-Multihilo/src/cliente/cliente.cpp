@@ -109,8 +109,15 @@ Captura& Cliente::getCaptura() {
 }
 
 
-qintptr Cliente::getDescriptor(){
+qintptr Cliente::getDescriptor() {
 
     QMutexLocker locker(&mutex);
     return socket_descriptor;
+}
+
+
+QString Cliente::getId() {
+    QString id = QString("%1 - %2").arg(QString::fromUtf8(captura.usuario().c_str()),
+                                        QString::fromUtf8(captura.dispositivo().c_str()));
+    return id;
 }

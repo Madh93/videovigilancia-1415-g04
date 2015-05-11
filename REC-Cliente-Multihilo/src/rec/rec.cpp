@@ -148,6 +148,7 @@ void Rec::actualizarImagen(QImage imagen){
         captura.set_usuario(preferencias.value("usuario").toString().toStdString());
         captura.set_timestamp(QDateTime::currentDateTime().toTime_t());
         captura.set_imagen(img_buff.buffer().constData(), img_buff.buffer().size());
+        captura.set_dispositivo(preferencias.value("dispositivo").toString().toStdString());
 
         // Serializar el mensaje
         std::string datos;

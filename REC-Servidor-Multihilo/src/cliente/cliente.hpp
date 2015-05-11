@@ -38,6 +38,7 @@ class Cliente : public QThread {
         void desconectar();
         Captura& getCaptura();
         qintptr getDescriptor();
+        QString getId();
 };
 
 #endif // CLIENTE_HPP

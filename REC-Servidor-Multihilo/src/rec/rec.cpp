@@ -77,6 +77,7 @@ void Rec::crearConectados() {
     conectados->setSizeAdjustPolicy(QAbstractScrollArea::AdjustToContents);
     conectados->setResizeMode(QListView::Adjust);
     conectados->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
+    conectados->setCurrentRow(0);
 
     ui->horizontalLayoutPrincipal->addWidget(conectados);
 }
@@ -127,6 +128,11 @@ void Rec::guardarImagen(QPixmap imagen, QString usuario, uint timestamp) {
 
 void Rec::recibirImagen(Captura captura) {
 
+    // Asignar nombre en la lista de conectados
+    if (conectados->currentItem())
+        conectados->currentItem()->setText(servidor->clienteActual()->getId());
+    qDebug() << conectados->currentItem();
+
     if (captura.IsInitialized()) {
 
         // Recuperar imagen
@@ -151,10 +157,10 @@ void Rec::recibirImagen(Captura captura) {
 }
 
 
-void Rec::nuevoCliente(int cliente) {
+void Rec::nuevoCliente(QString id) {
 
     QListWidgetItem *item = new QListWidgetItem;
-    item->setText(QString::number(cliente));
+    item->setText(id);
     conectados->addItem(item);
 }
 
@@ -194,7 +200,7 @@ void Rec::on_actionIniciarServidor_triggered() {
 
     // Señales y slots
     connect(servidor, SIGNAL(nuevaImagen(Captura)), this, SLOT(recibirImagen(Captura)));
-    connect(servidor, SIGNAL(nuevoCliente(int)), this, SLOT(nuevoCliente(int)));
+    connect(servidor, SIGNAL(nuevoCliente(QString)), this, SLOT(nuevoCliente(QString)));
     connect(servidor, SIGNAL(clienteDesconectado(int)), this, SLOT(clienteDesconectado(int)));
     connect(conectados, SIGNAL(currentRowChanged(int)), servidor, SLOT(setActual(int)));
 }

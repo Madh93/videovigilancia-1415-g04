@@ -50,7 +50,7 @@ class Rec : public QMainWindow {
     public slots:
 
         void recibirImagen(Captura captura);
-        void nuevoCliente(int cliente);
+        void nuevoCliente(QString id);
         void clienteDesconectado(int cliente);
 
     private slots:

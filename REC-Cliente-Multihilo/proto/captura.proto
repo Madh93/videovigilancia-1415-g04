@@ -2,5 +2,5 @@ message Captura {
     required string usuario = 1;        // Nombre del usuario
     required uint64 timestamp = 2;      // Seg. desde 1/1/1970
     required bytes imagen = 3;          // Datos de la imagen
-    optional string dispositivo = 4;    // Nombre de la camara
+    required string dispositivo = 4;    // Nombre de la camara
 }
