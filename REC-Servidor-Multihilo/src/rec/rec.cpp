@@ -77,16 +77,6 @@ void Rec::crearConectados() {
     conectados->setSizeAdjustPolicy(QAbstractScrollArea::AdjustToContents);
     conectados->setResizeMode(QListView::Adjust);
     conectados->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
-//    label->setText("Esperando a iniciar servidor...");
-//    label->setAutoFillBackground(true);
-//    label->setAlignment(Qt::AlignCenter);
-//    label->setSizePolicy(QSizePolicy::Ignored,QSizePolicy::Ignored);
-
-    // Añadir color de fondo
-//    QPalette paleta = this->palette();
-//    paleta.setColor(QPalette::Background, QColor(90,90,90));
-//    paleta.setColor(QPalette::WindowText, Qt::white);
-//    label->setPalette(paleta);
 
     ui->horizontalLayoutPrincipal->addWidget(conectados);
 }
@@ -94,52 +84,13 @@ void Rec::crearConectados() {
 
 void Rec::cerrarServidor() {
 
-    servidor->detener();
+    conectados->clear();
 
     if (servidor) {
-        qDebug() << "DEBUGEANDO 1...";
-        servidor->close();
-        //qDebug() << "DEBUGEANDO 2...";
-        // disconnect(server, SIGNAL(newConnection()), this, SLOT(aceptarConexiones()));
-        // disconnect(server, SIGNAL(acceptError(QAbstractSocket::SocketError)),
-        //             this, SLOT(serverError(QAbstractSocket::SocketError)));
+        servidor->detener();
         delete servidor;
-        //qDebug() << "DEBUGEANDO 3...";
         servidor = NULL;
     }
-}
-
-
-void Rec::recibirImagen(Captura captura) {
-
-    // Recuperar imagen
-    QImage img = QImage::fromData(reinterpret_cast<const uchar*>(captura.imagen().c_str()),
-                                  captura.imagen().size(),
-                                  "jpeg");
-    pixmap = QPixmap(QPixmap::fromImage(img));
-
-    // Añadir información
-    QPainter painter(&pixmap);
-    painter.setPen(Qt::red);
-    painter.setFont(QFont("",14));
-    painter.drawText(20,30,tr("Cliente: %1").arg(captura.usuario().c_str()));
-    painter.drawText(20,50,tr("Timestamp: %1").arg(captura.timestamp()));
-
-    // Mostrar imagen
-    label->setPixmap(pixmap);
-}
-
-
-void Rec::nuevoCliente(int cliente) {
-
-        //qDebug() << "mostrar en lista";
-//    QListWidgetItem item(QString(cliente));
-//    qDebug() << cliente;
-//    qDebug() << QString(cliente);
-    QListWidgetItem *item = new QListWidgetItem(QString::number(cliente),conectados);
-//    item->setData(Qt::UserRole, QVariant(1));
-    //conectados->addItem(&item);
-    //conectados->setItemWidget(&item,this);
 }
 
 
@@ -174,6 +125,45 @@ void Rec::guardarImagen(QPixmap imagen, QString usuario, uint timestamp) {
  SLOTS
 **************************/
 
+void Rec::recibirImagen(Captura captura) {
+
+    if (captura.IsInitialized()) {
+
+        // Recuperar imagen
+        QImage img = QImage::fromData(reinterpret_cast<const uchar*>(captura.imagen().c_str()),
+                                      captura.imagen().size(),
+                                      "jpeg");
+        pixmap = QPixmap(QPixmap::fromImage(img));
+
+        // Añadir información
+        QPainter painter(&pixmap);
+        painter.setPen(Qt::red);
+        painter.setFont(QFont("",14));
+        painter.drawText(20,30,tr("Cliente: %1").arg(captura.usuario().c_str()));
+        painter.drawText(20,50,tr("Timestamp: %1").arg(captura.timestamp()));
+
+        // Mostrar imagen
+        label->setPixmap(pixmap);
+    }
+
+    else
+        label->setText("No se puede obtener ninguna imagen...");
+}
+
+
+void Rec::nuevoCliente(int cliente) {
+
+    QListWidgetItem *item = new QListWidgetItem;
+    item->setText(QString::number(cliente));
+    conectados->addItem(item);
+}
+
+
+void Rec::clienteDesconectado(int cliente) {
+
+    conectados->takeItem(cliente);
+    label->setText("No se puede obtener ninguna imagen...");
+}
 
 
 /***************************
@@ -195,29 +185,25 @@ void Rec::on_actionIniciarServidor_triggered() {
         return;
     }
 
-    // connect(server, SIGNAL(newConnection()), this, SLOT(aceptarConexiones()));
-    // connect(server, SIGNAL(acceptError(QAbstractSocket::SocketError)),
-    //         this, SLOT(serverError(QAbstractSocket::SocketError)));
-
     // Ajustes
     activarFuncionalidades(true);
     this->setWindowTitle(WINDOW_TITLE_ON);
     label->setText("Servidor iniciado...");
     statusIzda.setText("Dirección IP: " + servidor->serverAddress().toString());
     statusDcha.setText("Puerto: " + QString::number(servidor->serverPort()));
-    //connect(servidor->getCliente(), SIGNAL(nuevaImagen(Captura)), this, SLOT(recibirImagen(Captura)));
+
+    // Señales y slots
     connect(servidor, SIGNAL(nuevaImagen(Captura)), this, SLOT(recibirImagen(Captura)));
     connect(servidor, SIGNAL(nuevoCliente(int)), this, SLOT(nuevoCliente(int)));
+    connect(servidor, SIGNAL(clienteDesconectado(int)), this, SLOT(clienteDesconectado(int)));
+    connect(conectados, SIGNAL(currentRowChanged(int)), servidor, SLOT(setActual(int)));
 }
 
 
 void Rec::on_actionCerrar_triggered() {
 
-    //qDebug() << "DEBUGEANDO 10...";
     cerrarServidor();
-    //qDebug() << "DEBUGEANDO 20...";
 
-    // Ajustes
     activarFuncionalidades(false);
     this->setWindowTitle(WINDOW_TITLE_OFF);
     label->setText("Esperando a iniciar servidor...");

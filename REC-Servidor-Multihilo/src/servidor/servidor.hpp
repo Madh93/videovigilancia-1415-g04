@@ -2,8 +2,8 @@
 #define SERVIDOR_HPP
 
 #include <QTcpServer>
-#include <QVector>
-#include "captura.pb.h"
+#include <QList>
+
 #include "cliente.hpp"
 
 class Servidor : public QTcpServer {
@@ -13,17 +13,20 @@ class Servidor : public QTcpServer {
     private:
 
         int puerto;
-        Cliente* cliente;
-        QVector<Cliente*> clientes;
+        int actual;
+        QList<Cliente*> clientes;
 
     signals:
 
         void nuevaImagen(Captura);
         void nuevoCliente(int);
+        void clienteDesconectado(int);
 
     public slots:
 
-        void recibirImagen(Captura);
+        void recibirImagen();
+        void desconectado(Cliente* cliente);
+        void setActual(int actual);
 
     public:
 
@@ -31,12 +34,12 @@ class Servidor : public QTcpServer {
         ~Servidor();
         bool iniciar();
         void detener();
-        Cliente* getCliente();
+        Cliente* clienteActual();
+        int clientesConectados();
 
     protected:
 
         void incomingConnection(qintptr descriptor);
-
 };
 
 #endif // SERVIDOR_HPP

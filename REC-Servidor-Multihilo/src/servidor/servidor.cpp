@@ -2,34 +2,58 @@
 
 Servidor::Servidor(int port, QObject* parent):
     QTcpServer(parent),
-    cliente(NULL) {
-        puerto = port;
-}
+    puerto(port),
+    actual(0) { }
 
 
 Servidor::~Servidor() {
 
-    //qDebug() << "DEBUGEANDO 6...";
-
-    if (cliente) {
-        delete cliente;
-        cliente = NULL;
+    foreach(Cliente* cliente, clientes) {
+        cliente->desconectar();
+        clientes.removeOne(cliente);
     }
-    //qDebug() << "DEBUGEANDO 7...";
+
+    this->close();
 }
 
 
-void Servidor::recibirImagen(Captura img) {
 
-    emit nuevaImagen(img);
+/***************************
+ SLOTS
+**************************/
+
+void Servidor::desconectado(Cliente* cliente) {
+
+    int pos = clientes.indexOf(cliente);
+    emit clienteDesconectado(pos);
+    clientes.removeOne(cliente);
+    cliente->desconectar();
+//    cliente->deleteLater();
+
 }
 
+void Servidor::recibirImagen() {
+
+    if (actual >= 0)
+        emit nuevaImagen(clientes[actual]->getCaptura());
+}
+
+
+void Servidor::setActual(int actual) {
+
+    this->actual = actual;
+}
+
+
+/***************************
+ MÉTODOS PÚBLICOS
+**************************/
 
 bool Servidor::iniciar() {
 
     // Mantenerse a la escucha por el puerto establecido
     if(!this->listen(QHostAddress::Any,puerto)) {
-        qDebug() << "No se ha podido iniciar el servidor";
+        qDebug() << "No se ha podido iniciar el servidor.";
         return false;
     }
     else {
@@ -40,40 +64,53 @@ bool Servidor::iniciar() {
 
 void Servidor::detener() {
 
-    //qDebug() << "DEBUGEANDO 4...";
-    //qDebug() << cliente->getSocket();
-    //if (cliente->getSocket() == NULL)
-    //cliente->getSocket()->disconnectFromHost();
-       // qDebug() << "DEBUGEANDO 5...";
+    qDebug() << "Cerrando servidor...";
 
+    foreach(Cliente* cliente, clientes) {
+        cliente->desconectar();
+        clientes.removeOne(cliente);
+    }
+
+    this->close();
+
+    qDebug() << "Servidor cerrado.";
 }
 
 
+Cliente* Servidor::clienteActual() {
 
-
-Cliente* Servidor::getCliente() {
-
-    return cliente;
+    return clientes[actual];
 }
 
+
+int Servidor::clientesConectados() {
+
+    return clientes.size();
+}
+
+/***************************
+ MÉTODOS PROTEGIDOS
+**************************/
 
 void Servidor::incomingConnection(qintptr descriptor) {
 
     qDebug() << descriptor << " iniciando conexión...";
 
-    //Cliente *cliente = new Cliente(descriptor, this);
-    cliente = new Cliente(descriptor, this);
-
+    Cliente *cliente = new Cliente(descriptor, this);
+    clientes.push_back(cliente);
 
     // Eliminar cliente al finalizar la conexión
     connect(cliente, SIGNAL(finished()), cliente, SLOT(deleteLater()));
-    connect(cliente, SIGNAL(nuevaImagen(Captura)), this, SLOT(recibirImagen(Captura)));
-    //connect(cliente, SIGNAL(finished()), cliente, SLOT(desconectar()));
+    connect(cliente, SIGNAL(nuevaImagen()), this, SLOT(recibirImagen()));
+    connect(cliente, SIGNAL(desconectado(Cliente*)), this, SLOT(desconectado(Cliente*)));
 
-    emit nuevoCliente(clientes.size()+1);
-
+    // Comenzar a leer datos
     cliente->start();
 
-    clientes.push_back(cliente);
-    qDebug() << clientes.size() << " clientes conectados.";
+    if (clientes.size() == 1)
+        qDebug() << clientes.size() << " cliente conectado actualmente.";
+    else
+        qDebug() << clientes.size() << " clientes conectados actualmente.";
+
+    emit nuevoCliente(clientes.size());
 }

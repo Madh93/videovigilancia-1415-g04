@@ -10,7 +10,6 @@ TEMPLATE = app
 
 INCLUDEPATH += $$PWD/acerca \
     $$PWD/capturebuffer \
-    $$PWD/cliente \
     $$PWD/conexion \
     $$PWD/dispositivos \
     $$PWD/../iconos \
@@ -20,7 +19,6 @@ INCLUDEPATH += $$PWD/acerca \
 SOURCES += main.cpp\
     acerca/acerca.cpp \
     capturebuffer/capturebuffer.cpp \
-    cliente/cliente.cpp \
     conexion/conexion.cpp \
     dispositivos/dispositivos.cpp \
     rec/rec.cpp
@@ -28,7 +26,6 @@ SOURCES += main.cpp\
 HEADERS  += rec/rec.hpp \
     acerca/acerca.hpp \
     capturebuffer/capturebuffer.hpp \
-    cliente/cliente.hpp \
     conexion/conexion.hpp \
     dispositivos/dispositivos.hpp
 

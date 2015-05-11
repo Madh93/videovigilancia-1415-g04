@@ -34,11 +34,8 @@ Rec::~Rec() {
         buffer = NULL;
     }
 
-    if (socket) {
-        //delete socket;
-        //socket = NULL;
+    if (socket)
         socket->deleteLater();
-    }
 }
 
 
@@ -101,20 +98,8 @@ void Rec::limpiarCamara() {
 
 void Rec::limpiarSocket() {
 
-    if (socket) {
-         socket->deleteLater();
-        //qDebug() << "DEBUGEANDO 1...";
-        //socket->disconnectFromHost();
-        //qDebug() << "DEBUGEANDO 2...";
-        // disconnect(socket, SIGNAL(connected()), this, SLOT(iniciarCamara()));
-        // disconnect(socket, SIGNAL(disconnected()), this, SLOT(desconectar()));
-        // disconnect(socket, SIGNAL(error(QAbstractSocket::SocketError)),
-         //        this, SLOT(socketError(QAbstractSocket::SocketError)));
-        //delete socket;
-        //qDebug() << "DEBUGEANDO 3...";
-        //socket = NULL;
-    }
-    //qDebug() << "DEBUGEANDO 4...";
+    if (socket)
+        socket->deleteLater();
 }
 
 
@@ -173,9 +158,10 @@ void Rec::actualizarImagen(QImage imagen){
         socket->write(reinterpret_cast<char*>(&size), sizeof(size));
         socket->write(datos.c_str(), size);
 
-        socket->waitForBytesWritten(10);
+        if (socket->state() == QAbstractSocket::ConnectedState)
+            socket->waitForBytesWritten(10);
 
-        qDebug() << "Envia";
+        //qDebug() << "Envia";
     }
 }
 

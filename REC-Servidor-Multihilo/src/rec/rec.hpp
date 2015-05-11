@@ -20,7 +20,6 @@
 #include <QListWidget>
 
 #include "acerca.hpp"
-#include "captura.pb.h"
 #include "puertoescucha.hpp"
 #include "servidor.hpp"
 
@@ -52,6 +51,7 @@ class Rec : public QMainWindow {
 
         void recibirImagen(Captura captura);
         void nuevoCliente(int cliente);
+        void clienteDesconectado(int cliente);
 
     private slots:
 

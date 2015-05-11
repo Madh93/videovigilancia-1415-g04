@@ -2,10 +2,12 @@
 #define CLIENTE_HPP
 
 #include <QThread>
+#include <QMutex>
 #include <QTcpSocket>
-#include <QImage>
-#include "captura.pb.h"
 #include <QDebug>
+#include <stdexcept>
+
+#include "captura.pb.h"
 
 class Cliente : public QThread {
 
@@ -14,17 +16,18 @@ class Cliente : public QThread {
     private:
 
         QTcpSocket *socket;
+        QMutex mutex;
         qintptr socket_descriptor;
+        Captura captura;
+        bool finalizar;
+
+        void leerDatos();
 
     signals:
 
-        void error(QTcpSocket::SocketError socketerror);
-        void nuevaImagen(Captura);
-
-    public slots:
-
-        void leer();
-        void desconectar();
+        void error(QTcpSocket::SocketError);
+        void nuevaImagen();
+        void desconectado(Cliente*);
 
     public:
 
@@ -32,7 +35,9 @@ class Cliente : public QThread {
         ~Cliente();
 
         void run();
-        QTcpSocket* getSocket();
+        void desconectar();
+        Captura& getCaptura();
+        qintptr getDescriptor();
 };
 
 #endif // CLIENTE_HPP
