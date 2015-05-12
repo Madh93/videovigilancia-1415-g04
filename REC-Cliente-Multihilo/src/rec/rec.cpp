@@ -154,12 +154,13 @@ bool Rec::detectarMovimiento(QImage *imagen){
 
     cv::Rect rectangulo;
     std::vector<cv::Rect> boxes;
-    for (int i=0;i < contours.size();i++){
+
+    for (unsigned int i=0;i < contours.size();i++){
         rectangulo= cv::boundingRect(contours[i]);
         boxes.push_back(rectangulo);
     }
 
-    for (int ii=0; ii<boxes.size(); ii++) {
+    for (unsigned int ii=0; ii<boxes.size(); ii++) {
         cv::rectangle(images,boxes[ii],cv::Scalar(0,255,0),2);
     }
 
