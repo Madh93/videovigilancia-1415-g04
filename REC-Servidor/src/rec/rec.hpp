@@ -17,6 +17,8 @@
 #include <QTime>
 #include <QDir>
 #include <QtMath>
+#include <QTcpServer>
+#include <QTcpSocket>
 
 #include "acerca.hpp"
 #include "puertoescucha.hpp"
@@ -35,6 +37,10 @@ class Rec : public QMainWindow {
         QLabel *label;
         QSettings preferencias;
         QPixmap pixmap;
+        QTcpServer *servidor;
+        QTcpSocket *cliente;
+        int bytes_a;
+        int estado;
 
         void activarFuncionalidades(bool cond);
         void crearLabel();
@@ -58,6 +64,11 @@ class Rec : public QMainWindow {
         void on_actionAyuda_triggered();
         void on_actionAcercaDe_triggered();
         void on_actionAcercaDeQt_triggered();
+
+        //conexion
+
+        void nueva_conexion();
+        void leer_datos();
 
     public:
 
