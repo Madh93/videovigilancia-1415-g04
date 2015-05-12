@@ -16,6 +16,7 @@
 #include <QSettings>
 #include <QTime>
 #include <QDir>
+#include <QtMath>
 
 #include "acerca.hpp"
 #include "puertoescucha.hpp"
