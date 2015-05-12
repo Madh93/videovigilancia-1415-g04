@@ -12,16 +12,19 @@ INCLUDEPATH += $$PWD/acerca \
     $$PWD/puertoescucha \
     $$PWD/../iconos \
     $$PWD/../proto \
-    $$PWD/rec
+    $$PWD/rec \
+    $$PWD/usuario
 
 SOURCES += main.cpp\
     acerca/acerca.cpp \
     puertoescucha/puertoescucha.cpp \
-    rec/rec.cpp
+    rec/rec.cpp \
+    usuario/usuario.cpp
 
 HEADERS  += rec/rec.hpp \
     acerca/acerca.hpp \
-    puertoescucha/puertoescucha.hpp
+    puertoescucha/puertoescucha.hpp \
+    usuario/usuario.h
 
 FORMS    += rec/rec.ui \
     acerca/acerca.ui \

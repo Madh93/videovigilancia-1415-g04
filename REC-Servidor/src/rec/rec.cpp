@@ -139,11 +139,15 @@ void Rec::nueva_conexion(){
 
     qDebug()<<"nueva conexion";
 
-        cliente=new QTcpSocket(this);
+    while (servidor->hasPendingConnections()){
 
-        cliente=servidor->nextPendingConnection();
+        static int i=0;
 
-        connect(cliente,SIGNAL(readyRead()),this,SLOT(leer_datos()));
+        usuario* usu= new usuario(servidor->nextPendingConnection(),label,i);
+        users.push_back(usu);
+        i++;
+
+    }
 
 
 }
