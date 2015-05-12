@@ -8,6 +8,7 @@ Rec::Rec(QWidget *parent) :
     buffer(NULL),
     socket(NULL),
     label(NULL),
+    backgroundSubtractor(500,16,false),
     conectado(false) {
 
         ui->setupUi(this);
@@ -121,12 +122,66 @@ void Rec::conectarConServidor() {
 }
 
 
+bool Rec::detectarMovimiento(QImage *imagen){
+
+    cv::Mat images;
+    images=QtOcv::image2Mat(*imagen);
+
+    cv::Mat foregroundMask;
+    cv::Mat back;
+
+    //extraccion del fondo
+
+    backgroundSubtractor(images, foregroundMask);
+    backgroundSubtractor.getBackgroundImage(back);
+    // Operaciones morfolóficas para eliminar las regiones de
+    // pequeño tamaño. Erode() las encoge y dilate() las vuelve a
+    // agrandar.
+
+    cv::erode(foregroundMask, foregroundMask, cv::Mat());
+    cv::dilate(foregroundMask, foregroundMask, cv::Mat());
+
+    // Obtener los contornos que bordean las regiones externas
+    // (CV_RETR_EXTERNAL) encontradas. Cada contorno es un vector
+    // de puntos y se devuelve uno por región en la máscara.
+    ContoursType contours;
+    cv::findContours(foregroundMask, contours, CV_RETR_EXTERNAL,
+                     CV_CHAIN_APPROX_NONE);
+    bool movimiento=true;
+    if (contours.empty()){
+        movimiento=false;
+    }
+
+    cv::Rect rectangulo;
+    std::vector<cv::Rect> boxes;
+    for (int i=0;i < contours.size();i++){
+        rectangulo= cv::boundingRect(contours[i]);
+        boxes.push_back(rectangulo);
+    }
+
+    for (int ii=0; ii<boxes.size(); ii++) {
+        cv::rectangle(images,boxes[ii],cv::Scalar(0,255,0),2);
+    }
+
+    cv::drawContours(   images, // draw contours here
+                        contours, // draw these contours
+                        -1, // draw all contours
+                        cv::Scalar(0,0,255), // set color
+                        2); // set thickness
+
+    *imagen=QtOcv::mat2Image(images);
+
+    return movimiento;
+}
+
+
 /***************************
  SLOTS
 **************************/
 
 void Rec::actualizarImagen(QImage imagen){
 
+    bool movimiento= detectarMovimiento(&imagen);
     pixmap = QPixmap(QPixmap::fromImage(imagen.scaled(label->size())));
 
     // Mostrar hora
@@ -140,7 +195,7 @@ void Rec::actualizarImagen(QImage imagen){
     label->setPixmap(pixmap);
 
 
-    if (conectado) {
+    if (conectado && movimiento) {
 
         // Obtener imagen
         QBuffer img_buff;

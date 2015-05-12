@@ -18,12 +18,17 @@
 #include <QTcpSocket>
 #include <QAbstractSocket>
 #include <QBuffer>
+#include <opencv2/opencv.hpp>
 
 #include "acerca.hpp"
 #include "capturebuffer.hpp"
 #include "captura.pb.h"
 #include "conexion.hpp"
+#include "cvmatandqimage.h"
 #include "dispositivos.hpp"
+
+typedef std::vector<cv::Mat> ImagesType;
+typedef std::vector<std::vector<cv::Point> > ContoursType;
 
 namespace Ui {
     class Rec;
@@ -40,6 +45,7 @@ class Rec : public QMainWindow {
         CaptureBuffer *buffer;
         QTcpSocket *socket;
         QLabel *label;
+        cv::BackgroundSubtractorMOG2 backgroundSubtractor;
         QLabel statusIzda;
         QSettings preferencias;
         QPixmap pixmap;
@@ -50,6 +56,7 @@ class Rec : public QMainWindow {
         void limpiarCamara();
         void limpiarSocket();
         void conectarConServidor();
+        bool detectarMovimiento(QImage *imagen);
 
     private slots:
 
