@@ -16,6 +16,8 @@
 #include <QSettings>
 #include <QTime>
 #include <QDir>
+#include <QTcpServer>
+#include <QTcpSocket>
 
 #include "acerca.hpp"
 #include "puertoescucha.hpp"
