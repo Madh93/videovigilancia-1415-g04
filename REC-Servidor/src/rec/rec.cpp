@@ -8,6 +8,29 @@ Rec::Rec(QWidget *parent) :
 
         ui->setupUi(this);
         crearLabel();
+	
+	//SQLite
+	
+    db = QSqlDatabase::addDatabase("QSQLITE");
+    db.setDatabaseName("data.sqlite");
+
+    if (!db.open()) {
+      QMessageBox::critical(NULL, tr("Error"), tr("No se pudo acceder a los datos."));
+	}
+	
+	//-->Creación de tablas
+	
+	QSqlQuery query_;
+
+    qDebug ("entrando");
+
+    query_.exec("CREATE TABLE IF NOT EXISTS datos"
+                "(id INTEGER PRIMARY KEY AUTOINCREMENT,"
+                " IDCAMERA VARCHAR(40),"
+                " TIMESTAMP VARCHAR(40),"
+                " IMAGE VARCHAR(200))");
+
+    qDebug ("guardo tonterias a ver si funciona");
 }
 
 

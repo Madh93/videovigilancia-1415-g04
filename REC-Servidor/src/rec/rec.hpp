@@ -17,6 +17,9 @@
 #include <QTime>
 #include <QDir>
 
+#include <QSqlDatabase>
+#include <QSqlQuery>
+
 #include "acerca.hpp"
 #include "puertoescucha.hpp"
 
@@ -34,6 +37,7 @@ class Rec : public QMainWindow {
         QLabel *label;
         QSettings preferencias;
         QPixmap pixmap;
+        QSqlDatabase db;
 
         void activarFuncionalidades(bool cond);
         void crearLabel();
