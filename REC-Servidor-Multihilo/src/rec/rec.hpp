@@ -16,12 +16,11 @@
 #include <QSettings>
 #include <QTime>
 #include <QDir>
-#include <QTcpServer>
-#include <QTcpSocket>
+#include <QListWidget>
 
 #include "acerca.hpp"
 #include "puertoescucha.hpp"
-#include "usuario.h"
+#include "servidor.hpp"
 
 namespace Ui {
     class Rec;
@@ -34,18 +33,24 @@ class Rec : public QMainWindow {
     private:
 
         Ui::Rec *ui;
+        Servidor *servidor;
         QLabel *label;
+        QListWidget *conectados;
+        QLabel statusIzda, statusDcha;
         QSettings preferencias;
         QPixmap pixmap;
-        QTcpServer *servidor;
-        QTcpSocket *cliente;
-        int bytes_a;
-        int estado;
-        QVector<usuario*> users;
 
         void activarFuncionalidades(bool cond);
         void crearLabel();
+        void crearConectados();
+        void cerrarServidor();
         void guardarImagen(QPixmap imagen, QString usuario, uint timestamp);
+
+    public slots:
+
+        void recibirImagen(Captura captura);
+        void nuevoCliente(int cliente);
+        void clienteDesconectado(int cliente);
 
     private slots:
 
