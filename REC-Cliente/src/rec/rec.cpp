@@ -129,7 +129,10 @@ bool Rec::detectar_movimiento(QImage *imagen){
        for (int ii=0; ii<boxes.size(); ii++) {
 
            char tipo='r';
+           QBuffer buffer;
            QVector<int> roi;
+
+
            roi.push_back(boxes[ii].x);
            roi.push_back(boxes[ii].y);
            roi.push_back(boxes[ii].width);
@@ -147,7 +150,12 @@ bool Rec::detectar_movimiento(QImage *imagen){
            qDebug() << tipo;
            cliente->write((char  *) &tam,sizeof(tam));
            qDebug()<<"tamaño"<<sizeof(roi.data());
-           cliente->write((char *) roi.data(),sizeof(roi));
+           qDebug()<<"tamaño2"<<roi.data();
+           qDebug()<<"tamaño3"<<&roi;
+           qDebug()<<"tamaño4"<<roi;
+
+           cliente->write((char *) &roi,sizeof(roi));
+
            qDebug() << sizeof(roi);
 
 

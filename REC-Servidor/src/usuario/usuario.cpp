@@ -129,8 +129,7 @@ void usuario::leer_datos(){
                     estado=2;
                     qDebug()<<"bytes aaaa" <<bytes_a;
 
-                }else
-                    break;
+                }
 
             qDebug()<<"bytes a" <<bytes_a;
             qDebug()<<"bytes disponibles"<<cliente->bytesAvailable();
@@ -143,8 +142,8 @@ void usuario::leer_datos(){
 
                     estado=0;
                     tipo_dato=' ';
-                    QVector<int> roi;
-                    cliente->read((char *) roi.data(),sizeof(bytes_a));
+                    int roi;
+                    cliente->read((char *) &roi,sizeof(bytes_a));
                     qDebug() <<  "roi " << roi;
                 }else
                     break;
