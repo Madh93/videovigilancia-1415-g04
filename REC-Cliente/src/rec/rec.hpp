@@ -23,6 +23,7 @@
 #include "capturebuffer.hpp"
 #include "conexion.hpp"
 #include "dispositivos.hpp"
+#include "captura.pb.h"
 
 #include <opencv2/opencv.hpp>
 #include "cvmatandqimage.h"
@@ -49,6 +50,7 @@ class Rec : public QMainWindow {
         cv::BackgroundSubtractorMOG2 backgroundSubtractor;
         QTcpSocket *cliente;
         bool conectado_;
+
 
         void activarFuncionalidades(bool cond);
         void crearLabel();

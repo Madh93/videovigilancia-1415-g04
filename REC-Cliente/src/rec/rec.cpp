@@ -134,14 +134,13 @@ bool Rec::detectar_movimiento(QImage *imagen){
        cv::rectangle(images,boxes[ii],cv::Scalar(0,255,0),2);
        }
 
-                cv::drawContours( images, // draw contours here
+  /*              cv::drawContours( images, // draw contours here
                                                   contours, // draw these contours
                                                   -1, // draw all contours
                                                   cv::Scalar(0,0,255), // set color
                                                   2); // set thickness
-               //cv::rectangle(images,rectangulo,cv::Scalar(0,255,0),2);
-               //cv::rectangle(images,boxes,cv::Scalar(0,255,0),2);
 
+*/
     *imagen=QtOcv::mat2Image(images);
 
     return movimiento;
@@ -193,25 +192,30 @@ void Rec::actualizarImagen(QImage imagen){
 
     if (conectado_ && movimiento){
 
-        qDebug() << "envio";
+        // Obtener imagen
+            QBuffer img_buff;
+            pixmap.toImage().save(&img_buff, "jpeg");
 
-        QBuffer buffer;
-        QImageWriter writer;
-        writer.setDevice(&buffer);
+            //Crear paquete de protocolo
+            Captura captura;
+            captura.set_usuario(preferencias.value("usuario").toString().toStdString());
+            captura.set_timestamp(QDateTime::currentDateTime().toTime_t());
+            captura.set_imagen(img_buff.buffer().constData(), img_buff.buffer().size());
+            //falta pasar nombre del dipositivo
 
-        writer.setFormat("jpeg");
-        writer.setCompression(70);
-        writer.write(imagen);
+            // Serializar el mensaje
+            std::string datos;
+            //captura.SerializeToString(&datos);
+            captura.SerializePartialToString(&datos);
+            int size = datos.size();
 
-        QByteArray bytes = buffer.buffer();
+            // Enviar mensaje serializado (tamaño+mensaje)
+            cliente->write(reinterpret_cast<char*>(&size), sizeof(size));
+            cliente->write(datos.c_str(), size);
 
-        int a = bytes.size();
-        cliente->write((char *) &a, sizeof(a));
-        cliente->write(bytes);
+            qDebug()<<"Envio";
 
-    }
-
-    else{
+    }else{
         qDebug()<< "No envio";
     }
 }

@@ -53,7 +53,7 @@ void Rec::crearLabel() {
     paleta.setColor(QPalette::WindowText, Qt::white);
     label->setPalette(paleta);
 
-    ui->verticalLayoutPrincipal->addWidget(label);
+    ui->horizontalLayoutPrincipal->addWidget(label);
 }
 
 
