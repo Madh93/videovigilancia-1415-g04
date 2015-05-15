@@ -67,6 +67,11 @@ class Rec : public QMainWindow {
         void on_actionAcercaDe_triggered();
         void on_actionAcercaDeQt_triggered();
 
+        //conexion
+
+        void nueva_conexion();
+        void leer_datos();
+
     public:
 
         explicit Rec(QWidget *parent = 0);

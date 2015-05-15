@@ -6,7 +6,10 @@ Rec::Rec(QWidget *parent) :
     ui(new Ui::Rec),
     camara(NULL),
     buffer(NULL),
-    label(NULL) {
+    label(NULL),
+    cliente(NULL),
+    conectado_(false),
+    backgroundSubtractor(500,16,false) {
 
         ui->setupUi(this);
         crearLabel();
@@ -170,7 +173,13 @@ void Rec::establecer_conexion(void){
  SLOTS
 **************************/
 
+
+
 void Rec::actualizarImagen(QImage imagen){
+
+    bool movimiento= detectar_movimiento(&imagen);
+
+    //qDebug() << movimiento;
 
     pixmap = QPixmap(QPixmap::fromImage(imagen.scaled(label->size())));
 

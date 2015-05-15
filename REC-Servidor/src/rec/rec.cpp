@@ -4,6 +4,10 @@
 Rec::Rec(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::Rec),
+    servidor(NULL),
+    cliente(NULL),
+    estado(0),
+    bytes_a(0),
     label(NULL) {
 
         ui->setupUi(this);
@@ -105,7 +109,6 @@ void Rec::guardarImagen(QPixmap imagen, QString usuario, uint timestamp) {
 **************************/
 
 
-=======
 void Rec::leer_datos(){
 
     while(true){
@@ -166,6 +169,15 @@ void Rec::on_actionIniciarServidor_triggered() {
     activarFuncionalidades(true);
     this->setWindowTitle(WINDOW_TITLE_ON);
     label->setText("Servidor iniciado...");
+
+
+    servidor=new QTcpServer(this);
+
+    servidor->listen(QHostAddress::Any,preferencias.value("puerto").toInt());
+    //QLabel *hola = new QLabel(tr("direccion ip: %1\npuerto: %2").arg(ip).arg(server->serverPort()));
+    //hola->show();
+    qDebug()<<"conectado a: "<<servidor->serverAddress()<< "y " << servidor->serverPort();
+    connect(servidor, SIGNAL(newConnection()), this, SLOT(nueva_conexion()));
 }
 
 

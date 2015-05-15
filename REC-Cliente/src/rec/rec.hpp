@@ -15,12 +15,21 @@
 #include <QPainter>
 #include <QSettings>
 #include <QTime>
+#include <QTcpSocket>
+#include <QBuffer>
+#include <QImageWriter>
 
 #include "acerca.hpp"
 #include "capturebuffer.hpp"
 #include "conexion.hpp"
 #include "dispositivos.hpp"
 #include "captura.pb.h"
+
+#include <opencv2/opencv.hpp>
+#include "cvmatandqimage.h"
+
+typedef std::vector<cv::Mat> ImagesType;
+typedef std::vector<std::vector<cv::Point> > ContoursType;
 
 namespace Ui {
     class Rec;
@@ -46,6 +55,8 @@ class Rec : public QMainWindow {
         void activarFuncionalidades(bool cond);
         void crearLabel();
         void limpiarCamara();
+        bool detectar_movimiento(QImage *imagen);
+        void establecer_conexion();
 
     private slots:
 
@@ -68,6 +79,9 @@ class Rec : public QMainWindow {
         void on_actionAyuda_triggered();
         void on_actionAcercaDe_triggered();
         void on_actionAcercaDeQt_triggered();
+
+        //conexion
+        void  conectado(void);
 
     public:
 
