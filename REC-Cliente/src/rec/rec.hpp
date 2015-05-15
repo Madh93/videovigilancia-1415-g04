@@ -15,11 +15,19 @@
 #include <QPainter>
 #include <QSettings>
 #include <QTime>
+#include <QTcpSocket>
+#include <QBuffer>
+#include <QImageWriter>
+#include <QSslSocket>
 
 #include "acerca.hpp"
 #include "capturebuffer.hpp"
 #include "conexion.hpp"
 #include "dispositivos.hpp"
+
+//#include <opencv2/opencv.hpp>
+//#include "cvmatandqimage.h"
+
 
 namespace Ui {
     class Rec;
@@ -37,10 +45,19 @@ class Rec : public QMainWindow {
         QLabel *label;
         QSettings preferencias;
         QPixmap pixmap;
+        //cv::BackgroundSubtractorMOG2 backgroundSubtractor;
+        QTcpSocket *cliente;
+        bool conectado_;
+
+        //SSL socket->cliente se conecta al servidor
+        QSslSocket *sslsocket_;
 
         void activarFuncionalidades(bool cond);
         void crearLabel();
         void limpiarCamara();
+        bool detectar_movimiento(QImage *imagen);
+        void establecer_conexion();
+
 
     private slots:
 
@@ -63,6 +80,9 @@ class Rec : public QMainWindow {
         void on_actionAyuda_triggered();
         void on_actionAcercaDe_triggered();
         void on_actionAcercaDeQt_triggered();
+
+        //conexion
+        void  conectado(void);
 
     public:
 

@@ -19,6 +19,7 @@
 #include <QTcpServer>
 #include <QTcpSocket>
 
+
 #include "acerca.hpp"
 #include "puertoescucha.hpp"
 #include "usuario.h"
@@ -65,6 +66,11 @@ class Rec : public QMainWindow {
         void on_actionAyuda_triggered();
         void on_actionAcercaDe_triggered();
         void on_actionAcercaDeQt_triggered();
+
+        //conexion
+
+        void nueva_conexion();
+        void leer_datos();
 
     public:
 

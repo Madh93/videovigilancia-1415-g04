@@ -4,6 +4,10 @@
 Rec::Rec(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::Rec),
+    servidor(NULL),
+    cliente(NULL),
+    estado(0),
+    bytes_a(0),
     label(NULL) {
 
         ui->setupUi(this);
@@ -55,7 +59,7 @@ void Rec::crearLabel() {
 
 void Rec::guardarImagen(QPixmap imagen, QString usuario, uint timestamp) {
 
-    // Ejemplo: /home/$USER/.rec/00/0d/34/f2/25042015-00443576.jpg
+    // Ejemplo: /home/$USER/.rec/usuario/25042015-00443576.jpg
 
     // Comprobar path de REC
     QString path = QDir::homePath()+"/.rec";
@@ -66,28 +70,16 @@ void Rec::guardarImagen(QPixmap imagen, QString usuario, uint timestamp) {
     if (!dir.exists())
         dir.mkpath(path);
 
-    // Recuperar valor del contador de imágenes actual
-    int cuenta = preferencias.value("cuentaImagenes").toInt();
-    QString path_hex = QString("%1").arg(cuenta, 8, 16, QChar('0'));
-
-    // Crear sistema hexadecimal de directorios
-    for (int i=0; i<4;i++) {
-        path.append("/"+path_hex.mid(i*2,2));
-        dir.setPath(path);
-        if (!dir.exists())
-            dir.mkpath(path);
-    }
+    // Comprobar que existe directorio del usuario
+    dir.setPath(path_usuario);
+    if (!dir.exists())
+        dir.mkpath(path_usuario);
 
     // Almacenar imagen en disco duro
     QDateTime fecha = QDateTime::currentDateTime().fromTime_t(timestamp);
     QString formato = fecha.toString(QLatin1String("ddMMyyyy-hhmmsszz"));
     QString path_imagen = path_usuario + QString::fromLatin1("/%1.jpg").arg(formato);
 
-    // Aumentar contador y guardar imagen
-    if (cuenta == qPow(16,8)-1)
-        cuenta = -1;
-
-    preferencias.setValue("cuentaImagenes", cuenta+1);
     imagen.save(path_imagen,0,60);
 }
 
@@ -97,7 +89,6 @@ void Rec::guardarImagen(QPixmap imagen, QString usuario, uint timestamp) {
 **************************/
 
 
-=======
 void Rec::leer_datos(){
 
     while(true){
@@ -158,6 +149,15 @@ void Rec::on_actionIniciarServidor_triggered() {
     activarFuncionalidades(true);
     this->setWindowTitle(WINDOW_TITLE_ON);
     label->setText("Servidor iniciado...");
+
+
+    servidor=new QTcpServer(this);
+
+    servidor->listen(QHostAddress::Any,preferencias.value("puerto").toInt());
+    //QLabel *hola = new QLabel(tr("direccion ip: %1\npuerto: %2").arg(ip).arg(server->serverPort()));
+    //hola->show();
+    qDebug()<<"conectado a: "<<servidor->serverAddress()<< "y " << servidor->serverPort();
+    connect(servidor, SIGNAL(newConnection()), this, SLOT(nueva_conexion()));
 }
 
 

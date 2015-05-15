@@ -26,13 +26,10 @@ usuario::usuario(QTcpSocket* c, QLabel* v, int i, QObject *parent) : QObject(par
 
 }
 
-usuario::~usuario()
-{
-    mi_vid=NULL;
+usuario::~usuario() {
+
     delete mi_vid;
-    cliente=NULL;
     delete cliente;
-    video=NULL;
     delete video;
 }
 

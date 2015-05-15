@@ -6,7 +6,9 @@ Rec::Rec(QWidget *parent) :
     ui(new Ui::Rec),
     camara(NULL),
     buffer(NULL),
-    label(NULL) {
+    label(NULL),
+    cliente(NULL),
+    conectado_(false) {
 
         ui->setupUi(this);
         crearLabel();
@@ -85,12 +87,37 @@ void Rec::limpiarCamara() {
 }
 
 
+
+void Rec::conectado(void){
+    conectado_=true;
+}
+
+void Rec::establecer_conexion(void){
+
+    cliente = new QTcpSocket(this);
+    //sslsocket_ = new QSslSocket(this);
+
+    cliente->connectToHost(preferencias.value("direccion").toString(),preferencias.value("puerto").toInt());
+    qDebug() <<"conectado a:" <<preferencias.value("direccion").toString()<<preferencias.value("puerto").toInt();
+    connect(cliente, SIGNAL(connected()), this, SLOT(conectado()));
+    qDebug() << conectado_;
+    connect(cliente, SIGNAL(disconnected()), cliente, SLOT(deleteLater()));
+
+    /*sslsocket_->connectToHostEncrypted(preferencias.value("direccion").toString(),preferencias.value("puerto").toInt());
+    sslsocket_->ignoreSslErrors();*/
+
+}
+
+
 /***************************
  SLOTS
 **************************/
 
+
+
 void Rec::actualizarImagen(QImage imagen){
 
+    //bool movimiento= detectar_movimiento(&imagen);
     pixmap = QPixmap(QPixmap::fromImage(imagen.scaled(label->size())));
 
     // Mostrar hora
@@ -102,6 +129,31 @@ void Rec::actualizarImagen(QImage imagen){
                      QTime().currentTime().toString());
 
     label->setPixmap(pixmap);
+
+    //if (conectado_ && movimiento){
+      if(conectado_) {
+
+        qDebug() << "envio";
+
+        QBuffer buffer;
+        QImageWriter writer;
+        writer.setDevice(&buffer);
+
+        writer.setFormat("jpeg");
+        writer.setCompression(70);
+        writer.write(imagen);
+
+        QByteArray bytes = buffer.buffer();
+
+        int a = bytes.size();
+        cliente->write((char *) &a, sizeof(a));
+        cliente->write(bytes);
+
+    }
+
+    else{
+        qDebug()<< "No envio";
+    }
 }
 
 
@@ -113,7 +165,7 @@ void Rec::on_actionCapturar_triggered() {
 
     // Borrar camara anterior
     on_actionCerrar_triggered();
-
+    establecer_conexion();
     // Abrir camara por defecto o guardada en preferencias
     QString ruta = preferencias.value("dispositivo").toString();
 
@@ -146,10 +198,18 @@ void Rec::on_actionCapturar_triggered() {
     camara->setViewfinder(buffer);
     camara->start();
 
+
     // Ajustes
     activarFuncionalidades(true);
     this->setWindowTitle(WINDOW_RECORDING);
+
+    sslsocket_=new QSslSocket(this);
+
+    sslsocket_->ignoreSslErrors();
     connect(buffer, SIGNAL(transmitirImagen(QImage)), this, SLOT(actualizarImagen(QImage)));
+    connect(sslsocket_, SIGNAL(encrypted()), this, SLOT(connected()));
+    sslsocket_->connectToHostEncrypted(preferencias.value("direccion").toString(),preferencias.value("puerto").toInt());
+    sslsocket_->ignoreSslErrors();
 }
 
 void Rec::on_actionCerrar_triggered() { limpiarCamara(); }
