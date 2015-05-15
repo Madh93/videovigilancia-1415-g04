@@ -85,6 +85,87 @@ void Rec::limpiarCamara() {
 }
 
 
+bool Rec::detectar_movimiento(QImage *imagen){
+
+    cv::Mat images;
+    images=QtOcv::image2Mat(*imagen);
+
+    cv::Mat foregroundMask;
+    cv::Mat back;
+
+       //extraccion del fondo
+
+        backgroundSubtractor(images, foregroundMask);
+        backgroundSubtractor.getBackgroundImage(back);
+        // Operaciones morfolóficas para eliminar las regiones de
+        // pequeño tamaño. Erode() las encoge y dilate() las vuelve a
+        // agrandar.
+
+        cv::erode(foregroundMask, foregroundMask, cv::Mat());
+        cv::dilate(foregroundMask, foregroundMask, cv::Mat());
+
+        // Obtener los contornos que bordean las regiones externas
+        // (CV_RETR_EXTERNAL) encontradas. Cada contorno es un vector
+        // de puntos y se devuelve uno por región en la máscara.
+        ContoursType contours;
+        cv::findContours(foregroundMask, contours, CV_RETR_EXTERNAL,
+                         CV_CHAIN_APPROX_NONE);
+        bool movimiento=true;
+        if (contours.empty()){
+
+                movimiento=false;
+        }
+
+        cv::Rect rectangulo;
+        //std::vector<cv::Rect> boxes;
+        for (int i=0;i < contours.size();i++){
+            rectangulo= cv::boundingRect(contours[i]);
+        boxes.push_back(rectangulo);
+       }
+
+       for (int ii=0; ii<boxes.size(); ii++) {
+       /*qDebug() << boxes[ii].x << endl;
+       qDebug() << boxes[ii].y << endl;
+       qDebug() << boxes[ii].width << endl;
+       qDebug() << boxes[ii].height << endl;*/
+
+
+
+       cv::rectangle(images,boxes[ii],cv::Scalar(0,255,0),2);
+       }
+
+  /*              cv::drawContours( images, // draw contours here
+                                                  contours, // draw these contours
+                                                  -1, // draw all contours
+                                                  cv::Scalar(0,0,255), // set color
+                                                  2); // set thickness
+
+*/
+    *imagen=QtOcv::mat2Image(images);
+
+    return movimiento;
+
+}
+
+void Rec::conectado(void){
+
+    conectado_=true;
+    qDebug() << "conectado wey";
+}
+
+void Rec::establecer_conexion(void){
+
+    cliente=new QTcpSocket(this);
+
+    cliente->connectToHost(preferencias.value("direccion").toString(),preferencias.value("puerto").toInt());
+    qDebug() <<"conectado a:" <<preferencias.value("direccion").toString()<<preferencias.value("puerto").toInt();
+    connect(cliente, SIGNAL(connected()), this, SLOT(conectado()));
+    qDebug() << conectado_;
+    connect(cliente, SIGNAL(disconnected()), cliente, SLOT(deleteLater()));
+
+}
+
+
 /***************************
  SLOTS
 **************************/
@@ -102,6 +183,45 @@ void Rec::actualizarImagen(QImage imagen){
                      QTime().currentTime().toString());
 
     label->setPixmap(pixmap);
+
+    if (conectado_ && movimiento){
+
+        // Obtener imagen
+            QBuffer img_buff;
+            pixmap.toImage().save(&img_buff, "jpeg");
+
+            //Crear paquete de protocolo
+            Captura captura;
+            captura.set_usuario(preferencias.value("usuario").toString().toStdString());
+            captura.set_timestamp(QDateTime::currentDateTime().toTime_t());
+            captura.set_imagen(img_buff.buffer().constData(), img_buff.buffer().size());
+
+            for (int i=0; i<boxes.size(); i++) {
+                Captura::Roi *roi = captura.add_rois();
+                roi->set_x(boxes[i].x);
+                roi->set_y(boxes[i].y);
+                roi->set_width(boxes[i].width);
+                roi->set_height(boxes[i].height);
+            }
+            //falta pasar nombre del dipositivo
+
+            // Serializar el mensaje
+            std::string datos;
+            captura.SerializeToString(&datos);
+            //captura.SerializePartialToString(&datos);
+            int size = datos.size();
+
+            // Enviar mensaje serializado (tamaño+mensaje)
+            cliente->write(reinterpret_cast<char*>(&size), sizeof(size));
+            cliente->write(datos.c_str(), size);
+
+            boxes.clear();
+
+            qDebug()<<"Envio";
+
+    }else{
+        qDebug()<< "No envio";
+    }
 }
 
 

@@ -58,52 +58,43 @@ void usuario::set_cliente(QTcpSocket *client, QLabel *lvideo, int i){
 }
 
 void usuario::leer_datos(){
-    qDebug()<<estado;
-    qDebug()<<cliente->bytesAvailable();
-//    qDebug()<<"TODO GUAY";
-    while(true){
 
-    if (estado==0 && cliente->bytesAvailable()>=sizeof(bytes_a)){
+    // Recibir mensaje serializado (tamaño+mensaje)
+    int size;
+    std::string datos;
 
-        cliente->read((char *) &bytes_a,sizeof(bytes_a));
-        estado=1;
-    }/*else
-        break;
-*/
-    qDebug()<<"bytes a" <<bytes_a;
-    qDebug()<<"bytes disponibles"<<cliente->bytesAvailable();
-    qDebug()<<"estado"<<estado;
+    cliente->read(reinterpret_cast<char*>(&size),sizeof(size));
+    datos.resize(size);
+    cliente->read(const_cast<char*>(datos.c_str()), (qint64)size);
 
-    if (estado==1 && cliente->bytesAvailable()>=bytes_a){
-qDebug() <<  "cliente->bytesAvailable()";
+    // Deserializar mensaje
+    captura.ParseFromString(datos);
+    //captura.ParsePartialFromString(datos);
 
+    QVector<Captura::Roi> rois;
 
-        estado=0;
+    for (int i=0; i<captura.rois_size(); i++){
+        rois.push_back(captura.rois(i));
 
-    QByteArray byte = cliente->read(bytes_a);
-    qDebug() <<  "LEíDO";
-    QImage imagen;
-    imagen.loadFromData(byte,"JPEG");
-    QPixmap pixmap;
-    pixmap.convertFromImage(imagen);
-
-    //video->setPixmap(pixmap);
-
-
-    if (id==n_users-1)
-        video->setPixmap(pixmap);
-    else{
-        if (mi_vid==NULL){
-            mi_vid= new QLabel();
-            //mi_vid->show();
-        }
-        mi_vid->setPixmap(pixmap);
-        mi_vid->show();
+     qDebug() << rois[i].x();
+     qDebug() <<rois[i].y();
+     qDebug() <<rois[i].width();
+     qDebug() <<rois[i].height();
     }
+    // Recuperar imagen
+    QImage img = QImage::fromData(reinterpret_cast<const uchar*>(captura.imagen().c_str()),
+                                  captura.imagen().size(),
+                                  "jpeg");
+    QPixmap pixmap = QPixmap(QPixmap::fromImage(img));
 
-    }else
-        break;
+    // Añadir información
+    QPainter painter(&pixmap);
+    painter.setPen(Qt::red);
+    painter.setFont(QFont("",14));
+    painter.drawText(20,30,tr("Cliente: %1").arg(captura.usuario().c_str()));
+    painter.drawText(20,50,tr("Timestamp: %1").arg(captura.timestamp()));
 
-    }
+    // Mostrar imagen
+    video->setPixmap(pixmap);
 
 }

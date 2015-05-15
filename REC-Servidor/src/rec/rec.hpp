@@ -16,6 +16,7 @@
 #include <QSettings>
 #include <QTime>
 #include <QDir>
+#include <QtMath>
 #include <QTcpServer>
 #include <QTcpSocket>
 

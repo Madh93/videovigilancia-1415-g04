@@ -20,6 +20,7 @@
 #include "capturebuffer.hpp"
 #include "conexion.hpp"
 #include "dispositivos.hpp"
+#include "captura.pb.h"
 
 namespace Ui {
     class Rec;
@@ -37,6 +38,10 @@ class Rec : public QMainWindow {
         QLabel *label;
         QSettings preferencias;
         QPixmap pixmap;
+        cv::BackgroundSubtractorMOG2 backgroundSubtractor;
+        QTcpSocket *cliente;
+        bool conectado_;
+        std::vector<cv::Rect> boxes;
 
         void activarFuncionalidades(bool cond);
         void crearLabel();

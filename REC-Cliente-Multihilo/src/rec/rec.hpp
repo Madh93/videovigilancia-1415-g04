@@ -49,6 +49,7 @@ class Rec : public QMainWindow {
         QLabel statusIzda;
         QSettings preferencias;
         QPixmap pixmap;
+        std::vector<cv::Rect> boxes;
         bool conectado;
 
         void activarFuncionalidades(bool cond);

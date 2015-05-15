@@ -37,3 +37,6 @@ RESOURCES += ../iconos.qrc \
 
 PROTOS = ../proto/captura.proto
 include(../protobuf.pri)
+
+include(../QtOpenCV.pri)
+add_opencv_modules(core video imgproc)

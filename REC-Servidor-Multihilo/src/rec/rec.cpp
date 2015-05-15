@@ -102,10 +102,17 @@ void Rec::guardarImagen(QPixmap imagen, QString usuario, uint timestamp) {
 
     // Comprobar path de REC
     QString path = QDir::homePath()+"/.rec";
-    QString path_usuario = path+"/"+usuario;
     QDir dir(path);
 
-    // Si no existe, crear carpeta
+    // Si no existe, crear carpeta e iniciar contador
+    if (!dir.exists()) {
+        dir.mkpath(path);
+        preferencias.setValue("cuentaImagenes", 0);
+    }
+
+    // Comprobar path del usuario
+    path += "/"+usuario;
+    dir.setPath(path);
     if (!dir.exists())
         dir.mkpath(path);
 
@@ -124,7 +131,7 @@ void Rec::guardarImagen(QPixmap imagen, QString usuario, uint timestamp) {
     // Almacenar imagen en disco duro
     QDateTime fecha = QDateTime::currentDateTime().fromTime_t(timestamp);
     QString formato = fecha.toString(QLatin1String("ddMMyyyy-hhmmsszz"));
-    QString path_imagen = path_usuario + QString::fromLatin1("/%1.jpg").arg(formato);
+    QString path_imagen = path + QString::fromLatin1("/%1.jpg").arg(formato);
 
     // Aumentar contador y guardar imagen
     if (cuenta == qPow(16,8)-1)
@@ -159,6 +166,11 @@ void Rec::recibirImagen(Captura captura) {
 
         // Mostrar imagen
         label->setPixmap(pixmap);
+
+        // Guardar en disco duro
+        //guardarImagen(pixmap,
+        //              captura.usuario().c_str(),
+        //              captura.timestamp());
     }   
 }
 
