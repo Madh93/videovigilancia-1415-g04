@@ -50,6 +50,7 @@ class Rec : public QMainWindow {
         cv::BackgroundSubtractorMOG2 backgroundSubtractor;
         QTcpSocket *cliente;
         bool conectado_;
+        std::vector<cv::Rect> boxes;
 
 
         void activarFuncionalidades(bool cond);

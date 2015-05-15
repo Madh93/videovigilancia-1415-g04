@@ -68,9 +68,19 @@ void usuario::leer_datos(){
     cliente->read(const_cast<char*>(datos.c_str()), (qint64)size);
 
     // Deserializar mensaje
-    //captura.ParseFromString(datos);
-    captura.ParsePartialFromString(datos);
+    captura.ParseFromString(datos);
+    //captura.ParsePartialFromString(datos);
 
+    QVector<Captura::Roi> rois;
+
+    for (int i=0; i<captura.rois_size(); i++){
+        rois.push_back(captura.rois(i));
+
+     qDebug() << rois[i].x();
+     qDebug() <<rois[i].y();
+     qDebug() <<rois[i].width();
+     qDebug() <<rois[i].height();
+    }
     // Recuperar imagen
     QImage img = QImage::fromData(reinterpret_cast<const uchar*>(captura.imagen().c_str()),
                                   captura.imagen().size(),

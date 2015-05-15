@@ -120,7 +120,7 @@ bool Rec::detectar_movimiento(QImage *imagen){
         }
 
         cv::Rect rectangulo;
-        std::vector<cv::Rect> boxes;
+        //std::vector<cv::Rect> boxes;
         for (int i=0;i < contours.size();i++){
             rectangulo= cv::boundingRect(contours[i]);
         boxes.push_back(rectangulo);
@@ -131,6 +131,9 @@ bool Rec::detectar_movimiento(QImage *imagen){
        qDebug() << boxes[ii].y << endl;
        qDebug() << boxes[ii].width << endl;
        qDebug() << boxes[ii].height << endl;*/
+
+
+
        cv::rectangle(images,boxes[ii],cv::Scalar(0,255,0),2);
        }
 
@@ -201,17 +204,27 @@ void Rec::actualizarImagen(QImage imagen){
             captura.set_usuario(preferencias.value("usuario").toString().toStdString());
             captura.set_timestamp(QDateTime::currentDateTime().toTime_t());
             captura.set_imagen(img_buff.buffer().constData(), img_buff.buffer().size());
+
+            for (int i=0; i<boxes.size(); i++) {
+                Captura::Roi *roi = captura.add_rois();
+                roi->set_x(boxes[i].x);
+                roi->set_y(boxes[i].y);
+                roi->set_width(boxes[i].width);
+                roi->set_height(boxes[i].height);
+            }
             //falta pasar nombre del dipositivo
 
             // Serializar el mensaje
             std::string datos;
-            //captura.SerializeToString(&datos);
-            captura.SerializePartialToString(&datos);
+            captura.SerializeToString(&datos);
+            //captura.SerializePartialToString(&datos);
             int size = datos.size();
 
             // Enviar mensaje serializado (tamaño+mensaje)
             cliente->write(reinterpret_cast<char*>(&size), sizeof(size));
             cliente->write(datos.c_str(), size);
+
+            boxes.clear();
 
             qDebug()<<"Envio";
 
