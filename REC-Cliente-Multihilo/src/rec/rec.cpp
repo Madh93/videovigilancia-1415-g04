@@ -40,6 +40,8 @@ Rec::~Rec() {
 
     if (socket)
         socket->deleteLater();
+
+    boxes.clear();
 }
 
 
@@ -153,7 +155,7 @@ bool Rec::detectarMovimiento(QImage *imagen){
     }
 
     cv::Rect rectangulo;
-    std::vector<cv::Rect> boxes;
+    boxes.clear();
 
     for (unsigned int i=0;i < contours.size();i++){
         rectangulo= cv::boundingRect(contours[i]);
@@ -208,6 +210,14 @@ void Rec::actualizarImagen(QImage imagen){
         captura.set_timestamp(QDateTime::currentDateTime().toTime_t());
         captura.set_imagen(img_buff.buffer().constData(), img_buff.buffer().size());
         captura.set_dispositivo(preferencias.value("nombre-dispositivo").toString().toStdString());
+
+        for (int i=0; i<boxes.size(); i++) {
+            Captura::Roi *roi = captura.add_rois();
+            roi->set_x(boxes[i].x);
+            roi->set_y(boxes[i].y);
+            roi->set_width(boxes[i].width);
+            roi->set_height(boxes[i].height);
+        }
 
         // Serializar el mensaje
         std::string datos;
