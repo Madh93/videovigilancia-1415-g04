@@ -98,7 +98,7 @@ void Rec::cerrarServidor() {
 
 void Rec::guardarImagen(QPixmap imagen, QString usuario, uint timestamp) {
 
-    // Ejemplo: /home/$USER/.rec/usuario/25042015-00443576.jpg
+    // Ejemplo: /home/$USER/.rec/00/0d/34/f2/25042015-00443576.jpg
 
     // Comprobar path de REC
     QString path = QDir::homePath()+"/.rec";
@@ -109,16 +109,28 @@ void Rec::guardarImagen(QPixmap imagen, QString usuario, uint timestamp) {
     if (!dir.exists())
         dir.mkpath(path);
 
-    // Comprobar que existe directorio del usuario
-    dir.setPath(path_usuario);
-    if (!dir.exists())
-        dir.mkpath(path_usuario);
+    // Recuperar valor del contador de imágenes actual
+    int cuenta = preferencias.value("cuentaImagenes").toInt();
+    QString path_hex = QString("%1").arg(cuenta, 8, 16, QChar('0'));
+
+    // Crear sistema hexadecimal de directorios
+    for (int i=0; i<4;i++) {
+        path.append("/"+path_hex.mid(i*2,2));
+        dir.setPath(path);
+        if (!dir.exists())
+            dir.mkpath(path);
+    }
 
     // Almacenar imagen en disco duro
     QDateTime fecha = QDateTime::currentDateTime().fromTime_t(timestamp);
     QString formato = fecha.toString(QLatin1String("ddMMyyyy-hhmmsszz"));
     QString path_imagen = path_usuario + QString::fromLatin1("/%1.jpg").arg(formato);
 
+    // Aumentar contador y guardar imagen
+    if (cuenta == qPow(16,8)-1)
+        cuenta = -1;
+
+    preferencias.setValue("cuentaImagenes", cuenta+1);
     imagen.save(path_imagen,0,60);
 }
 
