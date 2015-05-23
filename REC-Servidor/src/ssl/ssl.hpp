@@ -16,15 +16,20 @@ public:
     explicit Server(QObject *parent=0);
     ~Server();
 
+signals:
+
+    void signal();
+
 public slots:
 
     void incomingConnection(qintptr socketDescriptor);
     void connection_refused();
     void connection_disconnected();
+    void signal2();
 
 private:
 
-    QSslSocket *socket_;
+    QSslSocket *connection_;
     QByteArray key_;
     QByteArray certificate_;
     QSettings *settings_;
