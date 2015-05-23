@@ -8,6 +8,7 @@ Rec::Rec(QWidget *parent) :
     buffer(NULL),
     label(NULL),
     cliente(NULL),
+    sslsocket_(NULL),
     conectado_(false) {
 
         ui->setupUi(this);
@@ -19,6 +20,7 @@ Rec::~Rec() {
 
     delete ui;
     delete label;
+    delete sslsocket_;
 
     if (camara) {
         delete camara;
