@@ -31,15 +31,14 @@ int main(int argc, char *argv[]) {
     }
 
     // Si pid es > 0, estamos en el proceso padre
-    if (pid > 0)
+    if (pid > 0){
         exit(0); // Terminar el proceso
-
+    }
     // Si la ejecución llega a este punto, estamos en el hijo
 
     /******************/
     /* Cambiar Umask */
     /****************/
-
     umask(0);
 
     /************************/
@@ -63,6 +62,7 @@ int main(int argc, char *argv[]) {
         exit(11);
     }
 
+
     // Cambiar directorio de trabajo
     if ((chdir("/")) < 0) {
         syslog(LOG_ERR, "No fue posible cambiar el directorio de trabajo a /\n");
@@ -76,12 +76,12 @@ int main(int argc, char *argv[]) {
     // Cerrar los descriptores de la E/S estándar
     close(STDIN_FILENO);            // fd 0
     close(STDOUT_FILENO);           // fd 1
-    close(STDERR_FILENO);           // fd 2
+    //close(STDERR_FILENO);           // fd 2     //produce segfault
 
     // Abrir nuevos descriptores de E/S
     int fd0 = open("/dev/null", O_RDONLY);  // fd0 == 0
     int fd1 = open("/dev/null", O_WRONLY);  // fd0 == 1
-    int fd2 = open("/dev/null", O_WRONLY);  // fd0 == 2
+    //int fd2 = open("/dev/null", O_WRONLY);  // fd0 == 2 produce segfault
 
 
     /*************************/
@@ -92,6 +92,7 @@ int main(int argc, char *argv[]) {
     passwd* user = getpwnam("recd");
     seteuid(user->pw_uid);
 
+    qDebug()<<"lo primero que se te ocurra";
     // Cambiar el grupo efectivo del proceso a 'midemonio'
     group* group = getgrnam("recd");
     setegid(group->gr_gid);
