@@ -5,6 +5,9 @@
 #include <QImage>
 #include <QPixmap>
 #include <QLabel>
+#include <QPainter>
+
+#include "captura.pb.h"
 
 
 class usuario : public QObject
@@ -30,6 +33,7 @@ private:
     QTcpSocket *cliente;
     QLabel *video;
     QLabel *mi_vid;
+    Captura captura;
 
 };
 

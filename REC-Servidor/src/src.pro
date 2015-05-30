@@ -20,14 +20,14 @@ SOURCES += main.cpp\
     acerca/acerca.cpp \
     puertoescucha/puertoescucha.cpp \
     rec/rec.cpp \
-    usuario/usuario.cpp \
-	 ssl/ssl.cpp
+	 ssl/ssl.cpp \
+    usuario/usuario.cpp
 
 HEADERS  += rec/rec.hpp \
     acerca/acerca.hpp \
+	 ssl/ssl.hpp \
     puertoescucha/puertoescucha.hpp \
-    usuario/usuario.h \
-	 ssl/ssl.hpp
+    usuario/usuario.h
 
 FORMS    += rec/rec.ui \
     acerca/acerca.ui \

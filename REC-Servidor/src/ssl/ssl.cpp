@@ -23,7 +23,6 @@ void Server::incomingConnection(qintptr socketDescriptor){
     QSslCertificate crt_ssl(certificate_);
     QList<QSslError> errors_;
 
-
     if(connection_->setSocketDescriptor(socketDescriptor)) {
 
         //Inicializamos SSL connection (key+certificate)
@@ -47,6 +46,8 @@ void Server::incomingConnection(qintptr socketDescriptor){
         //Establecer en la conexion la clave y el certificado de los ficheros.
         connection_->setPrivateKey(key_ssl);
         connection_->setLocalCertificate(crt_ssl);
+
+        qDebug("Encriptando..");
         connection_->startServerEncryption();
 
         connect(connection_, SIGNAL(encrypted()), this, SLOT(signal2()));
@@ -57,9 +58,7 @@ void Server::incomingConnection(qintptr socketDescriptor){
         errors_.append(QSslError::CertificateUntrusted);
 
         connection_->ignoreSslErrors(errors_);
-
     }
-
 }
 
 void Server::signal2() {
