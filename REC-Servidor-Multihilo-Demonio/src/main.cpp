@@ -85,6 +85,9 @@ int main(int argc, char *argv[]) {
     int fd0 = open("/dev/null", O_RDONLY);  // fd0 == 0
     int fd1 = open("/dev/null", O_WRONLY);  // fd0 == 1
     int fd2 = open("/dev/null", O_WRONLY);  // fd0 == 2
+    Q_UNUSED(fd0);
+    Q_UNUSED(fd1);
+    Q_UNUSED(fd2);
 
 
     /*************************/

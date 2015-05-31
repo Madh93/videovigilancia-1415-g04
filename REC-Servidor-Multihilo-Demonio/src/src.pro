@@ -23,16 +23,14 @@ SOURCES += main.cpp\
     demonio/demonio.cpp \
     puertoescucha/puertoescucha.cpp \
     rec/rec.cpp \
-    servidor/servidor.cpp \
-    rec/demonio.cpp
+    servidor/servidor.cpp
 
 HEADERS  += rec/rec.hpp \
     acerca/acerca.hpp \
     cliente/cliente.hpp \
     demonio/demonio.hpp \
     puertoescucha/puertoescucha.hpp \
-    servidor/servidor.hpp \
-    rec/demonio.hpp
+    servidor/servidor.hpp
 
 FORMS    += rec/rec.ui \
     acerca/acerca.ui \
