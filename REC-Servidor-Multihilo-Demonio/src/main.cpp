@@ -1,6 +1,5 @@
 #include <QApplication>
 #include <QDebug>
-#include "rec.hpp"
 #include <unistd.h> //fork(), close(), setsid()...
 #include <sys/stat.h> //umask()
 #include <iostream>   //cerr()
@@ -9,6 +8,9 @@
 #include <syslog.h>  //syslog(), openlog()
 #include <pwd.h>    //passwd(), user(), getpwnam()
 #include <grp.h>    //group(), getgrnam()
+
+#include "rec.hpp"
+#include "demonio.hpp"
 
 
 int main(int argc, char *argv[]) {
@@ -50,7 +52,7 @@ int main(int argc, char *argv[]) {
     openlog(argv[0], LOG_NOWAIT | LOG_PID, LOG_USER);
 
     // Enviar un mensaje al demonio syslog
-    syslog(LOG_NOTICE, "Demonio REC iniciado con éxito");
+    syslog(LOG_NOTICE, "Iniciando demonio REC...");
 
 
     /***********************/
@@ -93,7 +95,7 @@ int main(int argc, char *argv[]) {
     passwd* usuario = getpwnam("migue");   // USUARIO PROVISIONAL!
     if (!usuario) {
         std::cerr << "No existe el usuario en el sistema." << std::endl;
-        return(0);
+        return 0;
     } else
         seteuid(usuario->pw_uid);
 
@@ -101,23 +103,26 @@ int main(int argc, char *argv[]) {
     group* grupo = getgrnam("migue");    // GRUPO PROVISIONAL!
     if (!grupo) {
         std::cerr << "No existe el grupo en el sistema." << std::endl;
-        return(0);
+        return 0;
     } else
         setegid(grupo->gr_gid);
 
+    // Enviar un mensaje al demonio syslog
+    syslog(LOG_NOTICE, "Demonio REC iniciado con éxito");
 
     /****************/
     /* Asignar PID */
     /**************/
 
     // Archivo que contiene identificador de proceso del demonio
-    //QFile file("/var/run/recd.pid");
-    //QTextStream out(&file);
-    //out << pid;
-    //file.close();
+    QFile file("/var/run/recd.pid");
+    QTextStream out(&file);
+    out << pid;
+    file.close();
 
 
-
+    //sleep(20);
+    setupUnixSignalHandlers();
 
 
     // Cuando el demonio termine, cerrar la conexión con

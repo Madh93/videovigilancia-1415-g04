@@ -10,6 +10,7 @@ TEMPLATE = app
 
 INCLUDEPATH += $$PWD/acerca \
     $$PWD/cliente \
+    $$PWD/demonio \
     $$PWD/puertoescucha \
     $$PWD/../iconos \
     $$PWD/../proto \
@@ -19,15 +20,19 @@ INCLUDEPATH += $$PWD/acerca \
 SOURCES += main.cpp\
     acerca/acerca.cpp \
     cliente/cliente.cpp \
+    demonio/demonio.cpp \
     puertoescucha/puertoescucha.cpp \
     rec/rec.cpp \
-    servidor/servidor.cpp
+    servidor/servidor.cpp \
+    rec/demonio.cpp
 
 HEADERS  += rec/rec.hpp \
     acerca/acerca.hpp \
     cliente/cliente.hpp \
+    demonio/demonio.hpp \
     puertoescucha/puertoescucha.hpp \
-    servidor/servidor.hpp
+    servidor/servidor.hpp \
+    rec/demonio.hpp
 
 FORMS    += rec/rec.ui \
     acerca/acerca.ui \
