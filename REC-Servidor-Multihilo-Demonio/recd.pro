@@ -3,4 +3,4 @@ SUBDIRS = \
     src
 
 OTHER_FILES += \
-    REC-Servidor.pri
+    recd.pri

@@ -95,7 +95,7 @@ int main(int argc, char *argv[]) {
     /***********************/
 
     // Cambiar el usuario efectivo del proceso
-    passwd* usuario = getpwnam("migue");   // USUARIO PROVISIONAL!
+    passwd* usuario = getpwnam("alumno");   // USUARIO PROVISIONAL!
     if (!usuario) {
         std::cerr << "No existe el usuario en el sistema." << std::endl;
         return 0;
@@ -103,7 +103,7 @@ int main(int argc, char *argv[]) {
         seteuid(usuario->pw_uid);
 
     // Cambiar el grupo efectivo del proceso
-    group* grupo = getgrnam("migue");    // GRUPO PROVISIONAL!
+    group* grupo = getgrnam("alumno");    // GRUPO PROVISIONAL!
     if (!grupo) {
         std::cerr << "No existe el grupo en el sistema." << std::endl;
         return 0;
