@@ -205,11 +205,11 @@ void Rec::on_actionCapturar_triggered() {
     activarFuncionalidades(true);
     this->setWindowTitle(WINDOW_RECORDING);
 
+    //Protocolo SSL
     sslsocket_=new QSslSocket(this);
-
-    sslsocket_->ignoreSslErrors();
     connect(buffer, SIGNAL(transmitirImagen(QImage)), this, SLOT(actualizarImagen(QImage)));
-    connect(sslsocket_, SIGNAL(encrypted()), this, SLOT(connected()));
+    connect(sslsocket_, SIGNAL(encrypted()), this, SLOT(conectado()));
+
     sslsocket_->connectToHostEncrypted(preferencias.value("direccion").toString(),preferencias.value("puerto").toInt());
     sslsocket_->ignoreSslErrors();
 }

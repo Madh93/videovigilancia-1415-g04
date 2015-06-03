@@ -70,7 +70,6 @@ void Server::connection_refused() {
     connection_->disconnect();
     connection_->deleteLater();
     connection_->ignoreSslErrors();
-
 }
 
 void Server::connection_disconnected(){
