@@ -9,6 +9,9 @@
 #include <pwd.h>    //passwd(), user(), getpwnam()
 #include <grp.h>    //group(), getgrnam()
 
+#include<QFile>
+#include<QTextStream>
+
 #include "rec.hpp"
 #include "demonio.hpp"
 
@@ -65,7 +68,6 @@ int main(int argc, char *argv[]) {
         exit(11);
     }
 
-
     // Cambiar directorio de trabajo
     if ((chdir("/")) < 0) {
         syslog(LOG_ERR, "No fue posible cambiar el directorio de trabajo a '/'\n");
@@ -95,7 +97,7 @@ int main(int argc, char *argv[]) {
     /***********************/
 
     // Cambiar el usuario efectivo del proceso
-    passwd* usuario = getpwnam("alumno");   // USUARIO PROVISIONAL!
+    passwd* usuario = getpwnam("migue");   // USUARIO PROVISIONAL!
     if (!usuario) {
         std::cerr << "No existe el usuario en el sistema." << std::endl;
         return 0;
@@ -103,15 +105,12 @@ int main(int argc, char *argv[]) {
         seteuid(usuario->pw_uid);
 
     // Cambiar el grupo efectivo del proceso
-    group* grupo = getgrnam("alumno");    // GRUPO PROVISIONAL!
+    group* grupo = getgrnam("root");    // GRUPO PROVISIONAL!
     if (!grupo) {
         std::cerr << "No existe el grupo en el sistema." << std::endl;
         return 0;
     } else
         setegid(grupo->gr_gid);
-
-    // Enviar un mensaje al demonio syslog
-    syslog(LOG_NOTICE, "Demonio REC iniciado con éxito");
 
     /****************/
     /* Asignar PID */
@@ -119,13 +118,21 @@ int main(int argc, char *argv[]) {
 
     // Archivo que contiene identificador de proceso del demonio
     QFile file("/var/run/recd.pid");
-    QTextStream out(&file);
-    out << pid;
-    file.close();
+    if (file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        QTextStream out(&file);
+        out << getpid() << "\n";
+        file.close();
+    } else {
+        std::cerr << "No se puede escribir en /var/run/recd.pid" << std::endl;
+        return 0;
+    }
 
 
     //sleep(20);
     setupUnixSignalHandlers();
+
+    // Enviar un mensaje al demonio syslog
+    syslog(LOG_NOTICE, "Demonio REC iniciado con éxito");
 
 
     // Cuando el demonio termine, cerrar la conexión con

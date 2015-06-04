@@ -29,7 +29,7 @@ DAEMON=/usr/sbin/$NAME
 DAEMON_OPTS="--daemon"
 
 # Si el demonio no existe, salir.
-test -x $DAEMON || exit 5
+test -x $DAEMON || (echo "Doesn't exist $DAEMON" && exit 5)
 
 start()
 {
@@ -74,7 +74,7 @@ case "$1" in
         fi
         ;;
     *)
-        echo "Usage: $0 {start|stop|status|reload|force-reload|restart}"
+        echo "Usage: recdsh {start|stop|status|reload|force-reload|restart}"
         exit 2
         ;;
 esac
