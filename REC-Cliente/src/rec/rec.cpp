@@ -9,6 +9,7 @@ Rec::Rec(QWidget *parent) :
     label(NULL),
     cliente(NULL),
     conectado_(false),
+    sslsocket_(NULL),
     backgroundSubtractor(500,16,false) {
 
         ui->setupUi(this);
@@ -20,6 +21,7 @@ Rec::~Rec() {
 
     delete ui;
     delete label;
+    delete sslsocket_;
 
     if (camara) {
         delete camara;
@@ -279,6 +281,14 @@ void Rec::on_actionCapturar_triggered() {
     activarFuncionalidades(true);
     this->setWindowTitle(WINDOW_RECORDING);
     connect(buffer, SIGNAL(transmitirImagen(QImage)), this, SLOT(actualizarImagen(QImage)));
+
+    //Protocolo SSL
+    sslsocket_=new QSslSocket(this);
+    connect(buffer, SIGNAL(transmitirImagen(QImage)), this, SLOT(actualizarImagen(QImage)));
+    connect(sslsocket_, SIGNAL(encrypted()), this, SLOT(conectado()));
+
+    sslsocket_->connectToHostEncrypted(preferencias.value("direccion").toString(),preferencias.value("puerto").toInt());
+    sslsocket_->ignoreSslErrors();
 }
 
 void Rec::on_actionCerrar_triggered() { limpiarCamara(); }

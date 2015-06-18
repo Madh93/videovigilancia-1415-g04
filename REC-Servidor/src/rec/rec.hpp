@@ -23,6 +23,7 @@
 #include "acerca.hpp"
 #include "puertoescucha.hpp"
 #include "usuario.h"
+#include "ssl.hpp"
 
 namespace Ui {
     class Rec;
