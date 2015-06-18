@@ -171,6 +171,7 @@ void Rec::establecer_conexion(void){
     //Protocolo SSL
     sslsocket_=new QSslSocket(this);
     connect(buffer, SIGNAL(transmitirImagen(QImage)), this, SLOT(actualizarImagen(QImage)));
+    //connect(sslsocket_, SIGNAL(connected()), this, SLOT(conectado()));
     connect(sslsocket_, SIGNAL(encrypted()), this, SLOT(conectado()));
 
     sslsocket_->connectToHostEncrypted(preferencias.value("direccion").toString(),preferencias.value("puerto").toInt());
