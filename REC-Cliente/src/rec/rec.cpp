@@ -241,6 +241,8 @@ void Rec::actualizarImagen(QImage imagen){
     }else{
         qDebug()<< "No envio";
     }
+
+    boxes.clear();
 }
 
 
