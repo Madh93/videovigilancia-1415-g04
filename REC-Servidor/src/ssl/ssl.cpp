@@ -17,6 +17,10 @@ void Server::incomingConnection(qintptr socketDescriptor){
 
     qDebug("estableciendo conexion");
 
+        //Inicializamos SSL connection (key+certificate)
+        key_=settings_->value("key").toByteArray();
+        certificate_=settings_->value("certificate").toByteArray();
+
     QFile key_file(key_);
     QFile crt_file(certificate_);
     QSslKey key_ssl(key_,QSsl::Rsa);
@@ -24,10 +28,6 @@ void Server::incomingConnection(qintptr socketDescriptor){
     QList<QSslError> errors_;
 
     if(connection_->setSocketDescriptor(socketDescriptor)) {
-
-        //Inicializamos SSL connection (key+certificate)
-        key_=settings_->value("key").toByteArray();
-        certificate_=settings_->value("certificate").toByteArray();
 
         if(key_file.open(QIODevice::ReadOnly)) {
             key_=key_file.readAll();
