@@ -171,7 +171,7 @@ void Rec::on_actionIniciarServidor_triggered() {
     label->setText("Servidor iniciado...");
 
 
-    servidor=new QTcpServer(this);
+    servidor=new Server(this);
 
     servidor->listen(QHostAddress::Any,preferencias.value("puerto").toInt());
     //QLabel *hola = new QLabel(tr("direccion ip: %1\npuerto: %2").arg(ip).arg(server->serverPort()));

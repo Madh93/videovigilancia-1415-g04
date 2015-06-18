@@ -39,7 +39,7 @@ class Rec : public QMainWindow {
         QLabel *label;
         QSettings preferencias;
         QPixmap pixmap;
-        QTcpServer *servidor;
+        Server *servidor;
         QTcpSocket *cliente;
         int bytes_a;
         int estado;
