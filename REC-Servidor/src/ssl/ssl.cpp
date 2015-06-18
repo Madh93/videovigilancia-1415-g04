@@ -37,7 +37,7 @@ void Server::incomingConnection(qintptr socketDescriptor){
         }
 
         if(crt_file.open(QIODevice::ReadOnly)) {
-            key_=crt_file.readAll();
+            certificate_=crt_file.readAll();
             crt_file.close();
         } else {
             qDebug("Error en el certificado");
