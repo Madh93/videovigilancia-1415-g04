@@ -37,3 +37,12 @@ RESOURCES += ../iconos.qrc \
 
 PROTOS = ../proto/captura.proto
 include(../protobuf.pri)
+
+unix {
+
+    INSTALLS += target ssl config vardir script
+
+    ssl.path = $$DATADIR/SSL
+    ssl.files += SSL/server.crt \
+                 SSL/server.key
+}
