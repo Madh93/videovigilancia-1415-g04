@@ -160,13 +160,21 @@ void Rec::conectado(void){
 
 void Rec::establecer_conexion(void){
 
-    cliente=new QTcpSocket(this);
+    /*cliente=new QTcpSocket(this);
 
     cliente->connectToHost(preferencias.value("direccion").toString(),preferencias.value("puerto").toInt());
     qDebug() <<"conectado a:" <<preferencias.value("direccion").toString()<<preferencias.value("puerto").toInt();
     connect(cliente, SIGNAL(connected()), this, SLOT(conectado()));
     qDebug() << conectado_;
-    connect(cliente, SIGNAL(disconnected()), cliente, SLOT(deleteLater()));
+    connect(cliente, SIGNAL(disconnected()), cliente, SLOT(deleteLater()));*/
+
+    //Protocolo SSL
+    sslsocket_=new QSslSocket(this);
+    connect(buffer, SIGNAL(transmitirImagen(QImage)), this, SLOT(actualizarImagen(QImage)));
+    connect(sslsocket_, SIGNAL(encrypted()), this, SLOT(conectado()));
+
+    sslsocket_->connectToHostEncrypted(preferencias.value("direccion").toString(),preferencias.value("puerto").toInt());
+    sslsocket_->ignoreSslErrors();
 
 }
 
@@ -282,13 +290,8 @@ void Rec::on_actionCapturar_triggered() {
     this->setWindowTitle(WINDOW_RECORDING);
     connect(buffer, SIGNAL(transmitirImagen(QImage)), this, SLOT(actualizarImagen(QImage)));
 
-    //Protocolo SSL
-    sslsocket_=new QSslSocket(this);
-    connect(buffer, SIGNAL(transmitirImagen(QImage)), this, SLOT(actualizarImagen(QImage)));
-    connect(sslsocket_, SIGNAL(encrypted()), this, SLOT(conectado()));
+    establecer_conexion();
 
-    sslsocket_->connectToHostEncrypted(preferencias.value("direccion").toString(),preferencias.value("puerto").toInt());
-    sslsocket_->ignoreSslErrors();
 }
 
 void Rec::on_actionCerrar_triggered() { limpiarCamara(); }
