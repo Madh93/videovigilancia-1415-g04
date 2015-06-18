@@ -26,8 +26,8 @@ void Server::incomingConnection(qintptr socketDescriptor){
     if(connection_->setSocketDescriptor(socketDescriptor)) {
 
         //Inicializamos SSL connection (key+certificate)
-        key_=settings_->value("key","").toByteArray();
-        certificate_=settings_->value("certificate","").toByteArray();
+        key_=settings_->value("key").toByteArray();
+        certificate_=settings_->value("certificate").toByteArray();
 
         if(key_file.open(QIODevice::ReadOnly)) {
             key_=key_file.readAll();
