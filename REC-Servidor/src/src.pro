@@ -12,8 +12,9 @@ INCLUDEPATH += $$PWD/acerca \
     $$PWD/puertoescucha \
     $$PWD/../iconos \
     $$PWD/../proto \
+    $$PWD/../SSL \
     $$PWD/rec \
-	 $$PWD/ssl \
+    $$PWD/ssl \
     $$PWD/usuario
 
 SOURCES += main.cpp\
