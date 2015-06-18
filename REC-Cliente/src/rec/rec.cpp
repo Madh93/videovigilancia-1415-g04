@@ -231,10 +231,8 @@ void Rec::actualizarImagen(QImage imagen){
             int size = datos.size();
 
             // Enviar mensaje serializado (tamaño+mensaje)
-            cliente->write(reinterpret_cast<char*>(&size), sizeof(size));
-            cliente->write(datos.c_str(), size);
-
-            boxes.clear();
+            sslsocket_->write(reinterpret_cast<char*>(&size), sizeof(size));
+            sslsocket_->write(datos.c_str(), size);
 
             qDebug()<<"Envio";
 
