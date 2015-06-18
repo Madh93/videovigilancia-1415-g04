@@ -27,6 +27,8 @@ void Server::incomingConnection(qintptr socketDescriptor){
     QSslCertificate crt_ssl(certificate_);
     QList<QSslError> errors_;
 
+    qDebug()<<key_file.fileName();
+
     if(connection_->setSocketDescriptor(socketDescriptor)) {
 
         if(key_file.open(QIODevice::ReadOnly)) {
