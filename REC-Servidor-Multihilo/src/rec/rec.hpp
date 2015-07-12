@@ -18,6 +18,7 @@
 #include <QDir>
 #include <QtMath>
 #include <QListWidget>
+#include <QtSql>
 
 #include "acerca.hpp"
 #include "puertoescucha.hpp"
@@ -40,12 +41,14 @@ class Rec : public QMainWindow {
         QLabel statusIzda, statusDcha;
         QSettings preferencias;
         QPixmap pixmap;
+        QSqlDatabase database;
 
         void activarFuncionalidades(bool cond);
         void crearLabel();
         void crearConectados();
         void cerrarServidor();
-        void guardarImagen(QPixmap imagen, QString usuario, uint timestamp);
+        void guardarImagen(QPixmap imagen, QString usuario, QString dispositivo, uint timestamp);
+        void guardarImagenBDD(QPixmap imagen, QString usuario, QString dispositivo, uint timestamp);
 
     public slots:
 

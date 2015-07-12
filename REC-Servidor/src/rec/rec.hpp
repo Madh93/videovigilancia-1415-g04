@@ -19,6 +19,7 @@
 #include <QtMath>
 #include <QTcpServer>
 #include <QTcpSocket>
+#include <QtSql>
 
 #include "acerca.hpp"
 #include "puertoescucha.hpp"
@@ -43,10 +44,12 @@ class Rec : public QMainWindow {
         int bytes_a;
         int estado;
         QVector<usuario*> users;
+        QSqlDatabase database;
 
         void activarFuncionalidades(bool cond);
         void crearLabel();
-        void guardarImagen(QPixmap imagen, QString usuario, uint timestamp);
+        void guardarImagen(QPixmap imagen, QString usuario, QString dispositivo, uint timestamp);
+        void guardarImagenBDD(QPixmap imagen, QString usuario, QString dispositivo, uint timestamp);
 
     private slots:
 
