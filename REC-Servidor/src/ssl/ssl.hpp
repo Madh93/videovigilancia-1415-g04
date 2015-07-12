@@ -23,7 +23,7 @@ signals:
 public slots:
 
     void incomingConnection(qintptr socketDescriptor);
-    void connection_refused();
+    void connection_refused(QAbstractSocket::SocketError);
     void connection_disconnected();
     void signal2();
 

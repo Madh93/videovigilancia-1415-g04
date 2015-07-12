@@ -1,11 +1,12 @@
 #include "ssl.hpp"
-
+#include <QtNetwork>
 Server::Server(QObject *parent) : QTcpServer (parent) {
 
     connection_=new QSslSocket;
     settings_=new QSettings;
-    settings_->setValue("key", "SSL/server.key");
-    settings_->setValue("certificate", "SSL/server.crt");
+    settings_->setValue("key", "/home/eneas/cifrando/videovigilancia-1415-g04/REC-Servidor/SSL/server.key");
+    settings_->setValue("certificate", "/home/eneas/cifrando/videovigilancia-1415-g04/REC-Servidor/SSL/server.crt");
+
 }
 
 Server::~Server(){
@@ -49,12 +50,13 @@ void Server::incomingConnection(qintptr socketDescriptor){
         connection_->setPrivateKey(key_ssl);
         connection_->setLocalCertificate(crt_ssl);
 
-        qDebug("Encriptando..");
-        connection_->startServerEncryption();
 
         connect(connection_, SIGNAL(encrypted()), this, SLOT(signal2()));
-        connect(connection_, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(connection_refused()));
+        connect(connection_, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(connection_refused(QAbstractSocket::SocketError)));
         connect(connection_, SIGNAL(disconnected()), this, SLOT(connection_disconnected()));
+
+        qDebug("Encriptando..");
+        connection_->startServerEncryption();
 
         errors_.append(QSslError::SelfSignedCertificate);
         errors_.append(QSslError::CertificateUntrusted);
@@ -67,11 +69,18 @@ void Server::signal2() {
     emit signal();
 }
 
-void Server::connection_refused() {
+void Server::connection_refused(QAbstractSocket::SocketError erroroso) {
+    qDebug()<<erroroso;
     qDebug("Fallo en la conexion");
-    connection_->disconnect();
-    connection_->deleteLater();
-    connection_->ignoreSslErrors();
+    //connection_->disconnect();
+    //connection_->deleteLater();
+    QNetworkRequest request;
+    QSslConfiguration conf = connection_->sslConfiguration();
+    conf.setPeerVerifyMode(QSslSocket::VerifyNone);
+    connection_->setSslConfiguration(conf);
+    //QList<QSslError> expectedSslErrors;
+    //expectedSslErrors.append(error.);
+    //connection_->ignoreSslErrors(expectedSslErrors);
 }
 
 void Server::connection_disconnected(){

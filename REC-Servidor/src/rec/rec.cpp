@@ -150,7 +150,6 @@ void Rec::nueva_conexion(){
     while (servidor->hasPendingConnections()){
 
         static int i=0;
-
         usuario* usu= new usuario(servidor->nextPendingConnection(),label,i);
         users.push_back(usu);
         i++;
@@ -178,6 +177,7 @@ void Rec::on_actionIniciarServidor_triggered() {
     //hola->show();
     qDebug()<<"conectado a: "<<servidor->serverAddress()<< "y " << servidor->serverPort();
     connect(servidor, SIGNAL(newConnection()), this, SLOT(nueva_conexion()));
+
 }
 
 
