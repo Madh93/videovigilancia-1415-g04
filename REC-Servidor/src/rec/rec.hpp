@@ -24,6 +24,7 @@
 #include "acerca.hpp"
 #include "puertoescucha.hpp"
 #include "usuario.h"
+#include "ssl.hpp"
 
 namespace Ui {
     class Rec;
@@ -39,7 +40,7 @@ class Rec : public QMainWindow {
         QLabel *label;
         QSettings preferencias;
         QPixmap pixmap;
-        QTcpServer *servidor;
+        Server *servidor;
         QTcpSocket *cliente;
         int bytes_a;
         int estado;

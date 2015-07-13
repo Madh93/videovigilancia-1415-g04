@@ -9,6 +9,7 @@ Rec::Rec(QWidget *parent) :
     label(NULL),
     cliente(NULL),
     conectado_(false),
+    sslsocket_(NULL),
     backgroundSubtractor(500,16,false) {
 
         ui->setupUi(this);
@@ -20,6 +21,7 @@ Rec::~Rec() {
 
     delete ui;
     delete label;
+    delete sslsocket_;
 
     if (camara) {
         delete camara;
@@ -158,13 +160,28 @@ void Rec::conectado(void){
 
 void Rec::establecer_conexion(void){
 
-    cliente=new QTcpSocket(this);
+    /*cliente=new QTcpSocket(this);
 
     cliente->connectToHost(preferencias.value("direccion").toString(),preferencias.value("puerto").toInt());
     qDebug() <<"conectado a:" <<preferencias.value("direccion").toString()<<preferencias.value("puerto").toInt();
     connect(cliente, SIGNAL(connected()), this, SLOT(conectado()));
     qDebug() << conectado_;
-    connect(cliente, SIGNAL(disconnected()), cliente, SLOT(deleteLater()));
+    connect(cliente, SIGNAL(disconnected()), cliente, SLOT(deleteLater()));*/
+    QList<QSslError> errors_;
+    //Protocolo SSL
+    sslsocket_=new QSslSocket(this);
+    connect(sslsocket_, SIGNAL(sslErrors(const QList<QSslError> &)),this, SLOT(errorOccured(const QList<QSslError> &)));
+
+    errors_.append(QSslError::SelfSignedCertificate);
+    errors_.append(QSslError::CertificateUntrusted);
+    sslsocket_->ignoreSslErrors(errors_);
+
+    //sslsocket_->ignoreSslErrors(errors_);
+    connect(buffer, SIGNAL(transmitirImagen(QImage)), this, SLOT(actualizarImagen(QImage)));
+    //connect(sslsocket_, SIGNAL(connected()), this, SLOT(conectado()));
+    connect(sslsocket_, SIGNAL(encrypted()), this, SLOT(conectado()));
+    sslsocket_->connectToHostEncrypted(preferencias.value("direccion").toString(),preferencias.value("puerto").toInt());
+
 
 }
 
@@ -173,7 +190,15 @@ void Rec::establecer_conexion(void){
  SLOTS
 **************************/
 
-
+void Rec::errorOccured(const QList<QSslError> & error)
+{
+  // simply ignore the errors
+  // it should be very careful when ignoring errors
+    qDebug()<<"Error en cliente";
+    for (int i=0;i<error.size();i++)
+        error[i].errorString();
+  sslsocket_->ignoreSslErrors(error);
+}
 
 void Rec::actualizarImagen(QImage imagen){
 
@@ -221,16 +246,16 @@ void Rec::actualizarImagen(QImage imagen){
             int size = datos.size();
 
             // Enviar mensaje serializado (tamaño+mensaje)
-            cliente->write(reinterpret_cast<char*>(&size), sizeof(size));
-            cliente->write(datos.c_str(), size);
-
-            boxes.clear();
+            sslsocket_->write(reinterpret_cast<char*>(&size), sizeof(size));
+            sslsocket_->write(datos.c_str(), size);
 
             qDebug()<<"Envio";
 
     }else{
         qDebug()<< "No envio";
     }
+
+    boxes.clear();
 }
 
 
@@ -279,6 +304,9 @@ void Rec::on_actionCapturar_triggered() {
     activarFuncionalidades(true);
     this->setWindowTitle(WINDOW_RECORDING);
     connect(buffer, SIGNAL(transmitirImagen(QImage)), this, SLOT(actualizarImagen(QImage)));
+
+    establecer_conexion();
+
 }
 
 void Rec::on_actionCerrar_triggered() { limpiarCamara(); }

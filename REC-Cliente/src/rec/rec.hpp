@@ -28,6 +28,8 @@
 #include <opencv2/opencv.hpp>
 #include "cvmatandqimage.h"
 
+#include <QSslSocket>
+
 typedef std::vector<cv::Mat> ImagesType;
 typedef std::vector<std::vector<cv::Point> > ContoursType;
 
@@ -51,6 +53,9 @@ class Rec : public QMainWindow {
         QTcpSocket *cliente;
         bool conectado_;
         std::vector<cv::Rect> boxes;
+
+        //SSL socket->cliente se conecta al servidor
+        QSslSocket *sslsocket_;
 
         void activarFuncionalidades(bool cond);
         void crearLabel();
@@ -82,6 +87,8 @@ class Rec : public QMainWindow {
 
         //conexion
         void  conectado(void);
+        void errorOccured(const QList<QSslError> &error);
+
 
     public:
 

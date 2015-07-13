@@ -24,6 +24,7 @@ usuario::usuario(QTcpSocket* c, QLabel* v, int i, QObject *parent) : QObject(par
 
     connect(cliente,SIGNAL(readyRead()),this,SLOT(leer_datos()));
 
+
 }
 
 usuario::~usuario()
