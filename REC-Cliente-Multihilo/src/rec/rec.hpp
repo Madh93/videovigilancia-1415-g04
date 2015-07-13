@@ -16,17 +16,16 @@
 #include <QSettings>
 #include <QTime>
 #include <QTcpSocket>
+#include <QAbstractSocket>
 #include <QBuffer>
-#include <QImageWriter>
+#include <opencv2/opencv.hpp>
 
 #include "acerca.hpp"
 #include "capturebuffer.hpp"
-#include "conexion.hpp"
-#include "dispositivos.hpp"
 #include "captura.pb.h"
-
-#include <opencv2/opencv.hpp>
+#include "conexion.hpp"
 #include "cvmatandqimage.h"
+#include "dispositivos.hpp"
 
 typedef std::vector<cv::Mat> ImagesType;
 typedef std::vector<std::vector<cv::Point> > ContoursType;
@@ -44,23 +43,28 @@ class Rec : public QMainWindow {
         Ui::Rec *ui;
         QCamera *camara;
         CaptureBuffer *buffer;
+        QTcpSocket *socket;
         QLabel *label;
+        cv::BackgroundSubtractorMOG2 backgroundSubtractor;
+        QLabel statusIzda;
         QSettings preferencias;
         QPixmap pixmap;
-        cv::BackgroundSubtractorMOG2 backgroundSubtractor;
-        QTcpSocket *cliente;
-        bool conectado_;
         std::vector<cv::Rect> boxes;
+        bool conectado;
 
         void activarFuncionalidades(bool cond);
         void crearLabel();
         void limpiarCamara();
-        bool detectar_movimiento(QImage *imagen);
-        void establecer_conexion();
+        void limpiarSocket();
+        void conectarConServidor();
+        bool detectarMovimiento(QImage *imagen);
 
     private slots:
 
         void actualizarImagen(QImage imagen);
+        void iniciarCamara();
+        void desconectar();
+        void socketError(QAbstractSocket::SocketError error);
 
         // Archivo
         void on_actionCapturar_triggered();
@@ -79,9 +83,6 @@ class Rec : public QMainWindow {
         void on_actionAyuda_triggered();
         void on_actionAcercaDe_triggered();
         void on_actionAcercaDeQt_triggered();
-
-        //conexion
-        void  conectado(void);
 
     public:
 

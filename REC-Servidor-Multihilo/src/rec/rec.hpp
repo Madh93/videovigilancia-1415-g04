@@ -2,8 +2,8 @@
 #define REC_HPP
 
 // Títulos de ventana
-#define WINDOW_TITLE "REC"
-#define WINDOW_RECORDING "Capturando - REC"
+#define WINDOW_TITLE_OFF "Offline - REC (Panel de Control)"
+#define WINDOW_TITLE_ON "Online - REC (Panel de Control)"
 #define WINDOW_CRITICAL "Error - REC"
 #define WINDOW_WARNING "Aviso - REC"
 
@@ -15,21 +15,13 @@
 #include <QPainter>
 #include <QSettings>
 #include <QTime>
-#include <QTcpSocket>
-#include <QBuffer>
-#include <QImageWriter>
+#include <QDir>
+#include <QtMath>
+#include <QListWidget>
 
 #include "acerca.hpp"
-#include "capturebuffer.hpp"
-#include "conexion.hpp"
-#include "dispositivos.hpp"
-#include "captura.pb.h"
-
-#include <opencv2/opencv.hpp>
-#include "cvmatandqimage.h"
-
-typedef std::vector<cv::Mat> ImagesType;
-typedef std::vector<std::vector<cv::Point> > ContoursType;
+#include "puertoescucha.hpp"
+#include "servidor.hpp"
 
 namespace Ui {
     class Rec;
@@ -42,28 +34,29 @@ class Rec : public QMainWindow {
     private:
 
         Ui::Rec *ui;
-        QCamera *camara;
-        CaptureBuffer *buffer;
+        Servidor *servidor;
         QLabel *label;
+        QListWidget *conectados;
+        QLabel statusIzda, statusDcha;
         QSettings preferencias;
         QPixmap pixmap;
-        cv::BackgroundSubtractorMOG2 backgroundSubtractor;
-        QTcpSocket *cliente;
-        bool conectado_;
-        std::vector<cv::Rect> boxes;
 
         void activarFuncionalidades(bool cond);
         void crearLabel();
-        void limpiarCamara();
-        bool detectar_movimiento(QImage *imagen);
-        void establecer_conexion();
+        void crearConectados();
+        void cerrarServidor();
+        void guardarImagen(QPixmap imagen, QString usuario, uint timestamp);
+
+    public slots:
+
+        void recibirImagen(Captura captura);
+        void nuevoCliente(int cliente);
+        void clienteDesconectado(int cliente);
 
     private slots:
 
-        void actualizarImagen(QImage imagen);
-
         // Archivo
-        void on_actionCapturar_triggered();
+        void on_actionIniciarServidor_triggered();
         void on_actionCerrar_triggered();
         void on_actionSalir_triggered();
 
@@ -71,17 +64,13 @@ class Rec : public QMainWindow {
         void on_actionTomarInstantanea_triggered();
 
         // Preferencias
-        void on_actionConfigurarConexion_triggered();
-        void on_actionDispositivos_triggered();
+        void on_actionEstablecerPuerto_triggered();
         void on_actionPantallaCompleta_toggled(bool cond);
 
         // Ayuda
         void on_actionAyuda_triggered();
         void on_actionAcercaDe_triggered();
         void on_actionAcercaDeQt_triggered();
-
-        //conexion
-        void  conectado(void);
 
     public:
 

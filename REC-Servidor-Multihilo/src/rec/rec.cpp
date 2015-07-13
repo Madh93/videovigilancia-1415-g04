@@ -5,13 +5,16 @@ Rec::Rec(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::Rec),
     servidor(NULL),
-    cliente(NULL),
-    estado(0),
-    bytes_a(0),
-    label(NULL) {
+    label(NULL),
+    conectados(NULL) {
 
         ui->setupUi(this);
         crearLabel();
+        crearConectados();
+
+        // Añadir información del estado del servidor
+        ui->statusBar->addWidget(&statusIzda);
+        ui->statusBar->addPermanentWidget(&statusDcha);
 }
 
 
@@ -19,6 +22,11 @@ Rec::~Rec() {
 
     delete ui;
     delete label;
+
+    if (servidor) {
+        delete servidor;
+        servidor = NULL;
+    }
 }
 
 
@@ -53,12 +61,42 @@ void Rec::crearLabel() {
     paleta.setColor(QPalette::WindowText, Qt::white);
     label->setPalette(paleta);
 
-    ui->verticalLayoutPrincipal->addWidget(label);
+    ui->horizontalLayoutPrincipal->addWidget(label);
+}
+
+
+void Rec::crearConectados() {
+
+    if (conectados) {
+        delete conectados;
+        conectados = NULL;
+    }
+
+    // Crear lista de conectados
+    conectados = new QListWidget;
+    conectados->setSizeAdjustPolicy(QAbstractScrollArea::AdjustToContents);
+    conectados->setResizeMode(QListView::Adjust);
+    conectados->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
+    conectados->setMaximumWidth(25);
+    conectados->setCurrentRow(0);
+
+    ui->horizontalLayoutPrincipal->addWidget(conectados);
+}
+
+
+void Rec::cerrarServidor() {
+
+    conectados->clear();
+
+    if (servidor) {
+        servidor->detener();
+        delete servidor;
+        servidor = NULL;
+    }
 }
 
 
 void Rec::guardarImagen(QPixmap imagen, QString usuario, uint timestamp) {
-
 
     // Ejemplo: /home/$USER/.rec/00/0d/34/f2/25042015-00443576.jpg
 
@@ -108,57 +146,50 @@ void Rec::guardarImagen(QPixmap imagen, QString usuario, uint timestamp) {
  SLOTS
 **************************/
 
+void Rec::recibirImagen(Captura captura) {
 
-void Rec::leer_datos(){
+    if (captura.IsInitialized()) {
 
-    while(true){
+        // Recuperar imagen
+        QImage img = QImage::fromData(reinterpret_cast<const uchar*>(captura.imagen().c_str()),
+                                      captura.imagen().size(),
+                                      "jpeg");
+        pixmap = QPixmap(QPixmap::fromImage(img));
 
-    if (estado==0 && cliente->bytesAvailable()>=sizeof(bytes_a)){
+        // Añadir información
+        QPainter painter(&pixmap);
+        painter.setPen(Qt::red);
+        painter.setFont(QFont("",11));
+        painter.drawText(15,15,tr("Cliente: %1").arg(captura.usuario().c_str()));
+        painter.drawText(15,30,tr("Dispositivo: %1").arg(captura.dispositivo().c_str()));
+        painter.drawText(15,45,tr("Timestamp: %1").arg(captura.timestamp()));
 
-        cliente->read((char *) &bytes_a,sizeof(bytes_a));
-        estado=1;
-    }
-    qDebug()<<"bytes a" <<bytes_a;
-    qDebug()<<"bytes disponibles"<<cliente->bytesAvailable();
-    qDebug()<<"estado"<<estado;
+        // Mostrar imagen
+        label->setPixmap(pixmap);
 
-    if (estado==1 && cliente->bytesAvailable()>=bytes_a){
-        qDebug() <<  "cliente->bytesAvailable()";
-
-
-        estado=0;
-
-    QByteArray byte = cliente->read(bytes_a);
-    QImage imagen;
-    imagen.loadFromData(byte,"JPEG");
-    QPixmap pixmap;
-    pixmap.convertFromImage(imagen);
-    label->setPixmap(pixmap);
-
-    }else
-        break;
-
-    }
-
-
+        // Guardar en disco duro
+        //guardarImagen(pixmap,
+        //              captura.usuario().c_str(),
+        //              captura.timestamp());
+    }   
 }
 
-void Rec::nueva_conexion(){
 
-    qDebug()<<"nueva conexion";
+void Rec::nuevoCliente(int cliente) {
 
-    while (servidor->hasPendingConnections()){
-
-        static int i=0;
-
-        usuario* usu= new usuario(servidor->nextPendingConnection(),label,i);
-        users.push_back(usu);
-        i++;
-
-    }
-
-
+    QListWidgetItem *item = new QListWidgetItem;
+    item->setText(QString::number(cliente));
+    conectados->addItem(item);
 }
+
+
+void Rec::clienteDesconectado(int cliente) {
+
+    conectados->takeItem(cliente);
+    label->setText(QString("Servidor iniciado...\nCliente %1: desconectado.").
+                   arg(conectados->currentRow()+2));
+}
+
 
 /***************************
  ARCHIVO
@@ -166,27 +197,45 @@ void Rec::nueva_conexion(){
 
 void Rec::on_actionIniciarServidor_triggered() {
 
+    qDebug() << ("Iniciando servidor...");
+
+    // Comprobar alguna instancia anterior
+    if (servidor)
+        cerrarServidor();
+
+    servidor = new Servidor(preferencias.value("puerto").toInt(),this);
+
+    // Iniciar servidor
+    if (!servidor->iniciar()) {
+        QMessageBox::critical(this, WINDOW_CRITICAL,
+                              tr("No se puede iniciar el servidor: %1.").arg(servidor->errorString()));
+        return;
+    }
+
+    // Ajustes
     activarFuncionalidades(true);
     this->setWindowTitle(WINDOW_TITLE_ON);
     label->setText("Servidor iniciado...");
+    statusIzda.setText("Dirección IP: " + servidor->serverAddress().toString());
+    statusDcha.setText("Puerto: " + QString::number(servidor->serverPort()));
 
-
-    servidor=new QTcpServer(this);
-
-    servidor->listen(QHostAddress::Any,preferencias.value("puerto").toInt());
-    //QLabel *hola = new QLabel(tr("direccion ip: %1\npuerto: %2").arg(ip).arg(server->serverPort()));
-    //hola->show();
-    qDebug()<<"conectado a: "<<servidor->serverAddress()<< "y " << servidor->serverPort();
-    connect(servidor, SIGNAL(newConnection()), this, SLOT(nueva_conexion()));
+    // Señales y slots
+    connect(servidor, SIGNAL(nuevaImagen(Captura)), this, SLOT(recibirImagen(Captura)));
+    connect(servidor, SIGNAL(nuevoCliente(int)), this, SLOT(nuevoCliente(int)));
+    connect(servidor, SIGNAL(clienteDesconectado(int)), this, SLOT(clienteDesconectado(int)));
+    connect(conectados, SIGNAL(currentRowChanged(int)), servidor, SLOT(setActual(int)));
 }
 
 
 void Rec::on_actionCerrar_triggered() {
 
+    cerrarServidor();
+
     activarFuncionalidades(false);
     this->setWindowTitle(WINDOW_TITLE_OFF);
     label->setText("Esperando a iniciar servidor...");
-
+    statusIzda.setText("");
+    statusDcha.setText("");
 }
 
 
