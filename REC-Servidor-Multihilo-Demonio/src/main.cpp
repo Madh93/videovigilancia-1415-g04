@@ -117,7 +117,7 @@ int main(int argc, char *argv[]) {
     /**************/
 
     // Archivo que contiene identificador de proceso del demonio
-    QFile file("/var/run/recd.pid");
+    QFile file("/var/run/recd.pid");    // OJO que para crear el archivo se necesita ser ROOT!
     if (file.open(QIODevice::WriteOnly | QIODevice::Text)) {
         QTextStream out(&file);
         out << getpid() << "\n";
@@ -140,5 +140,6 @@ int main(int argc, char *argv[]) {
     syslog(LOG_NOTICE, "Demonio REC finalizado con éxito");
     closelog();
 
+    Demonio d;
     return a.exec();
 }

@@ -4,9 +4,7 @@ int Demonio::sigHupSd[2];
 int Demonio::sigTermSd[2];
 int Demonio::sigIntSd[2];
 
-Demonio::Demonio(QObject* parent):
-
-    QObject(parent) {
+Demonio::Demonio() {
 
     if (socketpair(AF_UNIX, SOCK_STREAM, 0, sigHupSd))
         qFatal("Couldn't create HUP socketpair");
@@ -22,6 +20,10 @@ Demonio::Demonio(QObject* parent):
     connect(sigHupNotifier, SIGNAL(activated(int)), this, SLOT(handleSigHup()));
     connect(sigTermNotifier, SIGNAL(activated(int)), this, SLOT(handleSigTerm()));
     connect(sigIntNotifier, SIGNAL(activated(int)), this, SLOT(handleSigInt()));
+
+    servidor = NULL;
+    // Iniciar servidor
+    on_actionIniciarServidor_triggered();
 }
 
 
@@ -30,8 +32,162 @@ Demonio::~Demonio() {
     delete sigHupNotifier;
     delete sigTermNotifier;
     delete sigIntNotifier;
+
+    if (servidor) {
+        delete servidor;
+        servidor = NULL;
+    }
 }
 
+
+/***************************
+ MÉTODOS PRIVADOS
+**************************/
+
+void Demonio::cerrarServidor() {
+
+    if (servidor) {
+        servidor->detener();
+        delete servidor;
+        servidor = NULL;
+    }
+}
+
+
+void Demonio::guardarImagen(QPixmap imagen, QString usuario, uint timestamp) {
+
+    // Ejemplo: /home/$USER/.rec/00/0d/34/f2/25042015-00443576.jpg
+
+    // Comprobar path de REC
+    QString path = QDir::homePath()+"/.rec";
+    QDir dir(path);
+
+    // Si no existe, crear carpeta e iniciar contador
+    if (!dir.exists()) {
+        dir.mkpath(path);
+        preferencias.setValue("cuentaImagenes", 0);
+    }
+
+    // Comprobar path del usuario
+    path += "/"+usuario;
+    dir.setPath(path);
+    if (!dir.exists())
+        dir.mkpath(path);
+
+    // Recuperar valor del contador de imágenes actual
+    int cuenta = preferencias.value("cuentaImagenes").toInt();
+    QString path_hex = QString("%1").arg(cuenta, 8, 16, QChar('0'));
+
+    // Crear sistema hexadecimal de directorios
+    for (int i=0; i<4;i++) {
+        path.append("/"+path_hex.mid(i*2,2));
+        dir.setPath(path);
+        if (!dir.exists())
+            dir.mkpath(path);
+    }
+
+    // Almacenar imagen en disco duro
+    QDateTime fecha = QDateTime::currentDateTime().fromTime_t(timestamp);
+    QString formato = fecha.toString(QLatin1String("ddMMyyyy-hhmmsszz"));
+    QString path_imagen = path + QString::fromLatin1("/%1.jpg").arg(formato);
+
+    // Aumentar contador y guardar imagen
+    if (cuenta == qPow(16,8)-1)
+        cuenta = -1;
+
+    preferencias.setValue("cuentaImagenes", cuenta+1);
+    imagen.save(path_imagen,0,60);
+}
+
+
+/***************************
+ SLOTS
+**************************/
+
+void Demonio::handleSigTerm() {
+
+   //Desactivar la monitorizacion para que por el momento no lleguen mas señales de QT
+   sigTermNotifier->setEnabled(false);
+
+   //Leer y desechar el byte enviado
+   char tmp;
+   read(sigTermSd[1], &tmp, sizeof(tmp));
+
+   //..tu codigo aqui... OJO!  <------------------------------------------------------
+   cerrarServidor();
+   on_actionIniciarServidor_triggered();
+
+   QCoreApplication::quit();  //Por ejemplo detener aplicación
+   qDebug("Sigterm");
+
+   //Activar de nuevo la monitorizacion
+   sigTermNotifier->setEnabled(true);
+}
+
+
+void Demonio::handleSigHup() {
+
+    //Desactivar la monitorizacion para que por el momento no lleguen mas señales de QT
+    sigHupNotifier->setEnabled(false);
+
+    //Leer y desechar el byte enviado
+    char tmp;
+    read(sigHupSd[1], &tmp, sizeof(tmp));
+
+    //..tu codigo aqui... OJO!  <------------------------------------------------------
+    cerrarServidor();
+
+    qDebug("Sigup");
+    QCoreApplication::quit();
+
+    //Activar de nuevo la monitorizacion
+    sigHupNotifier->setEnabled(true);
+}
+
+void Demonio::handleSigInt() {
+
+    //Desactivar la monitorizacion para que por el momento no lleguen mas señales de QT
+    sigIntNotifier->setEnabled(false);
+
+    //Leer y desechar el byte enviado
+    char tmp;
+    read(sigIntSd[1], &tmp, sizeof(tmp));
+
+    //..tu codigo aqui... OJO!  <------------------------------------------------------
+    cerrarServidor();
+
+    qDebug("Sigint");
+    qDebug ("HOLA SEÑAL");
+    QCoreApplication::quit();
+    qDebug ("ADIOS SEÑAL");
+
+    //Activar de nuevo la monitorizacion
+    sigIntNotifier->setEnabled(true);
+}
+
+
+void Demonio::recibirImagen(Captura captura) {
+
+    if (captura.IsInitialized()) {
+
+        // Recuperar imagen
+        QImage img = QImage::fromData(reinterpret_cast<const uchar*>(captura.imagen().c_str()),
+                                      captura.imagen().size(),
+                                      "jpeg");
+        pixmap = QPixmap(QPixmap::fromImage(img));
+
+        // Guardar en disco duro
+        guardarImagen(pixmap,
+                      captura.usuario().c_str(),
+                      captura.timestamp());
+    }
+}
+
+
+
+/***************************
+ METODOS PUBLICOS
+**************************/
 
 //-------------Manejadores de las señales SIGHUP, SIGTERM y SIGINT------------------//
 
@@ -51,58 +207,33 @@ void Demonio::intSignalHandler(int) {
 }
 
 
-void Demonio::handleSigTerm() {
 
-   //Desactivar la monitorizacion para que por el momento no lleguen mas señales de QT
-   sigTermNotifier->setEnabled(false);
+void Demonio::on_actionIniciarServidor_triggered() {
 
-   //Leer y desechar el byte enviado
-   char tmp;
-   read(sigTermSd[1], &tmp, sizeof(tmp));
+    qDebug() << ("Iniciando servidor...");
 
-   //..tu codigo aqui... OJO!  <------------------------------------------------------
-   QCoreApplication::quit();  //Por ejemplo detener aplicación
-   qDebug("Sigterm");
+    // Comprobar alguna instancia anterior
+    if (servidor)
+        cerrarServidor();
 
-   //Activar de nuevo la monitorizacion
-   sigTermNotifier->setEnabled(true);
+    servidor = new Servidor(12345,this);
+
+    // Iniciar servidor
+    if (!servidor->iniciar()) {
+        qDebug() << ("No se puede iniciar el servidor...");
+        return;
+    }
+
+    // Señales y slots
+    connect(servidor, SIGNAL(nuevaImagen(Captura)), this, SLOT(recibirImagen(Captura)));
+    connect(servidor, SIGNAL(nuevoCliente(int)), this, SLOT(nuevoCliente(int)));
+    connect(servidor, SIGNAL(clienteDesconectado(int)), this, SLOT(clienteDesconectado(int)));
 }
 
 
-void Demonio::handleSigHup() {
+void Demonio::on_actionCerrar_triggered() {
 
-    //Desactivar la monitorizacion para que por el momento no lleguen mas señales de QT
-    sigHupNotifier->setEnabled(false);
-
-    //Leer y desechar el byte enviado
-    char tmp;
-    read(sigHupSd[1], &tmp, sizeof(tmp));
-
-    //..tu codigo aqui... OJO!  <------------------------------------------------------
-    qDebug("Sigup");
-    QCoreApplication::quit();
-
-    //Activar de nuevo la monitorizacion
-    sigHupNotifier->setEnabled(true);
-}
-
-void Demonio::handleSigInt() {
-
-    //Desactivar la monitorizacion para que por el momento no lleguen mas señales de QT
-    sigIntNotifier->setEnabled(false);
-
-    //Leer y desechar el byte enviado
-    char tmp;
-    read(sigIntSd[1], &tmp, sizeof(tmp));
-
-    //..tu codigo aqui... OJO!  <------------------------------------------------------
-    qDebug("Sigint");
-    qDebug ("HOLA SEÑAL");
-    QCoreApplication::quit();
-    qDebug ("ADIOS SEÑAL");
-
-    //Activar de nuevo la monitorizacion
-    sigIntNotifier->setEnabled(true);
+    cerrarServidor();
 }
 
 

@@ -25,7 +25,8 @@ set -e
 
 NAME=recd
 PIDFILE=/var/run/$NAME.pid
-DAEMON=/usr/sbin/$NAME
+#DAEMON=/usr/sbin/$NAME
+DAEMON=/usr/local/bin/$NAME
 DAEMON_OPTS="--daemon"
 
 # Si el demonio no existe, salir.
