@@ -12,6 +12,23 @@ Rec::Rec(QWidget *parent) :
 
         ui->setupUi(this);
         crearLabel();
+
+        // Crear base de datos
+        database = QSqlDatabase::addDatabase("QSQLITE");
+        database.setDatabaseName(QDir::homePath()+"/.rec/rec.sqlite");
+
+        if (!database.open()) {
+            QMessageBox::critical(this, WINDOW_CRITICAL, "No se puede acceder a la base de datos.");
+            return;
+        }
+
+        QSqlQuery query;
+        query.exec("CREATE TABLE IF NOT EXISTS recdata"
+                   "(id INTEGER PRIMARY KEY AUTOINCREMENT, "
+                   "usuario VARCHAR(50), "
+                   "dispositivo VARCHAR(50), "
+                   "timestamp LONG, "
+                   "imagen BLOB)");
 }
 
 
@@ -57,10 +74,10 @@ void Rec::crearLabel() {
 }
 
 
-void Rec::guardarImagen(QPixmap imagen, QString usuario, uint timestamp) {
+void Rec::guardarImagen(QPixmap imagen, QString usuario, QString dispositivo, uint timestamp) {
 
 
-    // Ejemplo: /home/$USER/.rec/00/0d/34/f2/25042015-00443576.jpg
+    // Ejemplo: /home/$USER/.rec/usuario/dispositivo/00/0d/34/f2/25042015-00443576.jpg
 
     // Comprobar path de REC
     QString path = QDir::homePath()+"/.rec";
@@ -74,6 +91,12 @@ void Rec::guardarImagen(QPixmap imagen, QString usuario, uint timestamp) {
 
     // Comprobar path del usuario
     path += "/"+usuario;
+    dir.setPath(path);
+    if (!dir.exists())
+        dir.mkpath(path);
+
+    // Comprobar path del dispositivo
+    path += "/"+dispositivo;
     dir.setPath(path);
     if (!dir.exists())
         dir.mkpath(path);
@@ -101,6 +124,34 @@ void Rec::guardarImagen(QPixmap imagen, QString usuario, uint timestamp) {
 
     preferencias.setValue("cuentaImagenes", cuenta+1);
     imagen.save(path_imagen,0,60);
+}
+
+
+void Rec::guardarImagenBDD(QPixmap imagen, QString usuario, QString dispositivo, uint timestamp) {
+
+    QSqlQuery query;
+
+    // Agilizar petición
+    QSqlQuery("PRAGMA synchronous = OFF");
+    QSqlQuery("PRAGMA journal_mode = OFF");
+
+
+    // Guardar imagen mediante QByteArray
+    QByteArray img;
+    QBuffer buffer(&img);
+    buffer.open(QIODevice::WriteOnly);
+    imagen.save(&buffer,"jpeg");
+
+
+    // Insertar en la base de datos
+    query.prepare("INSERT INTO recdata (usuario, dispositivo, timestamp, imagen) "
+                  "VALUES (:usuario, :dispositivo, :timestamp, :imagen)");
+
+    query.bindValue(":usuario", usuario);
+    query.bindValue(":dispositivo", dispositivo);
+    query.bindValue(":timestamp", timestamp);
+    query.bindValue(":imagen", img);
+    qDebug() << query.exec();
 }
 
 
