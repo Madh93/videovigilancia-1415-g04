@@ -166,11 +166,6 @@ void Rec::recibirImagen(Captura captura) {
 
         // Mostrar imagen
         label->setPixmap(pixmap);
-
-        // Guardar en disco duro
-        //guardarImagen(pixmap,
-        //              captura.usuario().c_str(),
-        //              captura.timestamp());
     }   
 }
 

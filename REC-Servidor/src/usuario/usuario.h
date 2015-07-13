@@ -6,6 +6,8 @@
 #include <QPixmap>
 #include <QLabel>
 #include <QPainter>
+#include <QSettings>
+#include <QtSql>
 
 #include "captura.pb.h"
 
@@ -34,6 +36,10 @@ private:
     QLabel *video;
     QLabel *mi_vid;
     Captura captura;
+    QSettings preferencias;
+    QSqlDatabase database;
+    void guardarImagen(QPixmap imagen, QString usuario, QString dispositivo, uint timestamp);
+    void guardarImagenBDD(QPixmap imagen, QString usuario, QString dispositivo, uint timestamp);
 
 };
 

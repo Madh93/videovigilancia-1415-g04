@@ -13,6 +13,7 @@
 #include <QTime>
 #include <QDir>
 #include <QtMath>
+#include <QtSql>
 #include "puertoescucha.hpp"
 #include "servidor.hpp"
 
@@ -40,9 +41,11 @@ class Demonio : public QObject {
         Servidor *servidor;
         QPixmap pixmap;
         QSettings preferencias;
+        QSqlDatabase database;
 
         void cerrarServidor();
-        void guardarImagen(QPixmap imagen, QString usuario, uint timestamp);
+        void guardarImagen(QPixmap imagen, QString usuario, QString dispositivo, uint timestamp);
+        void guardarImagenBDD(QPixmap imagen, QString usuario, QString dispositivo, uint timestamp);
 
     public slots:
 

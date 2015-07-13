@@ -13,6 +13,16 @@ Rec::Rec(QWidget *parent) :
         ui->setupUi(this);
         crearLabel();
 
+        // Comprobar path de REC
+        QString path = QDir::homePath()+"/.rec";
+        QDir dir(path);
+
+        // Si no existe, crear carpeta e iniciar contador
+        if (!dir.exists()) {
+            dir.mkpath(path);
+            preferencias.setValue("cuentaImagenes", 0);
+        }
+
         // Crear base de datos
         database = QSqlDatabase::addDatabase("QSQLITE");
         database.setDatabaseName(QDir::homePath()+"/.rec/rec.sqlite");

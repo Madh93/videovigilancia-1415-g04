@@ -16,6 +16,16 @@ Rec::Rec(QWidget *parent) :
         ui->statusBar->addWidget(&statusIzda);
         ui->statusBar->addPermanentWidget(&statusDcha);
 
+        // Comprobar path de REC
+        QString path = QDir::homePath()+"/.rec";
+        QDir dir(path);
+
+        // Si no existe, crear carpeta e iniciar contador
+        if (!dir.exists()) {
+            dir.mkpath(path);
+            preferencias.setValue("cuentaImagenes", 0);
+        }
+
         // Crear base de datos
         database = QSqlDatabase::addDatabase("QSQLITE");
         database.setDatabaseName(QDir::homePath()+"/.rec/rec.sqlite");
@@ -219,16 +229,16 @@ void Rec::recibirImagen(Captura captura) {
         label->setPixmap(pixmap);
 
         // Guardar en disco duro
-        //guardarImagen(pixmap,
-        //              captura.usuario().c_str(),
-        //              captura.dispositivo().c_str(),
-        //              captura.timestamp());
+        guardarImagen(pixmap,
+                      captura.usuario().c_str(),
+                      captura.dispositivo().c_str(),
+                      captura.timestamp());
 
         // Guardar en base de datos
-        //guardarImagenBDD(pixmap,
-        //              captura.usuario().c_str(),
-        //              captura.dispositivo().c_str(),
-        //              captura.timestamp());
+        guardarImagenBDD(pixmap,
+                      captura.usuario().c_str(),
+                      captura.dispositivo().c_str(),
+                      captura.timestamp());
     }   
 }
 

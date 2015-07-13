@@ -6,6 +6,7 @@
 #include <QTcpSocket>
 #include <QDebug>
 #include <stdexcept>
+#include <QtSql>
 
 #include "captura.pb.h"
 
@@ -20,8 +21,11 @@ class Cliente : public QThread {
         qintptr socket_descriptor;
         Captura captura;
         bool finalizar;
+        QSqlDatabase database;
 
         void leerDatos();
+        void guardarImagen(QPixmap imagen, QString usuario, QString dispositivo, uint timestamp);
+        void guardarImagenBDD(QPixmap imagen, QString usuario, QString dispositivo, uint timestamp);
 
     signals:
 

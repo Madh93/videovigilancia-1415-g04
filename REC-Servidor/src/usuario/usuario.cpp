@@ -7,6 +7,33 @@ usuario::usuario(QObject *parent) : QObject(parent)
     cliente=NULL;
     bytes_a=0;
     mi_vid=NULL;
+
+    // Comprobar path de REC
+    QString path = QDir::homePath()+"/.rec";
+    QDir dir(path);
+
+    // Si no existe, crear carpeta e iniciar contador
+    if (!dir.exists()) {
+        dir.mkpath(path);
+        preferencias.setValue("cuentaImagenes", 0);
+    }
+
+    // Crear base de datos
+    database = QSqlDatabase::addDatabase("QSQLITE");
+    database.setDatabaseName(QDir::homePath()+"/.rec/rec.sqlite");
+
+    if (!database.open()) {
+        qDebug() << "No se puede acceder a la base de datos.";
+        return;
+    }
+
+    QSqlQuery query;
+    query.exec("CREATE TABLE IF NOT EXISTS recdata"
+               "(id INTEGER PRIMARY KEY AUTOINCREMENT, "
+               "usuario VARCHAR(50), "
+               "dispositivo VARCHAR(50), "
+               "timestamp LONG, "
+               "imagen BLOB)");
 }
 
 
@@ -98,4 +125,97 @@ void usuario::leer_datos(){
     // Mostrar imagen
     video->setPixmap(pixmap);
 
+    // Guardar en disco duro
+    guardarImagen(pixmap,
+                  captura.usuario().c_str(),
+                  captura.dispositivo().c_str(),
+                  captura.timestamp());
+
+    // Guardar en base de datos
+    guardarImagenBDD(pixmap,
+                  captura.usuario().c_str(),
+                  captura.dispositivo().c_str(),
+                  captura.timestamp());
+
 }
+
+
+void usuario::guardarImagen(QPixmap imagen, QString usuario, QString dispositivo, uint timestamp) {
+
+    // Ejemplo: /home/$USER/.rec/usuario/dispositivo/00/0d/34/f2/25042015-00443576.jpg
+
+    // Comprobar path de REC
+    QString path = QDir::homePath()+"/.rec";
+    QDir dir(path);
+
+    // Si no existe, crear carpeta e iniciar contador
+    if (!dir.exists()) {
+        dir.mkpath(path);
+        preferencias.setValue("cuentaImagenes", 0);
+    }
+
+    // Comprobar path del usuario
+    path += "/"+usuario;
+    dir.setPath(path);
+    if (!dir.exists())
+        dir.mkpath(path);
+
+    // Comprobar path del dispositivo
+    path += "/"+dispositivo;
+    dir.setPath(path);
+    if (!dir.exists())
+        dir.mkpath(path);
+
+    // Recuperar valor del contador de imágenes actual
+    int cuenta = preferencias.value("cuentaImagenes").toInt();
+    QString path_hex = QString("%1").arg(cuenta, 8, 16, QChar('0'));
+
+    // Crear sistema hexadecimal de directorios
+    for (int i=0; i<4;i++) {
+        path.append("/"+path_hex.mid(i*2,2));
+        dir.setPath(path);
+        if (!dir.exists())
+            dir.mkpath(path);
+    }
+
+    // Almacenar imagen en disco duro
+    QDateTime fecha = QDateTime::currentDateTime().fromTime_t(timestamp);
+    QString formato = fecha.toString(QLatin1String("ddMMyyyy-hhmmsszz"));
+    QString path_imagen = path + QString::fromLatin1("/%1.jpg").arg(formato);
+
+    // Aumentar contador y guardar imagen
+    if (cuenta == qPow(16,8)-1)
+        cuenta = -1;
+
+    preferencias.setValue("cuentaImagenes", cuenta+1);
+    imagen.save(path_imagen,0,60);
+}
+
+
+void usuario::guardarImagenBDD(QPixmap imagen, QString usuario, QString dispositivo, uint timestamp) {
+
+    QSqlQuery query;
+
+    // Agilizar petición
+    QSqlQuery("PRAGMA synchronous = OFF");
+    QSqlQuery("PRAGMA journal_mode = OFF");
+
+
+    // Guardar imagen mediante QByteArray
+    QByteArray img;
+    QBuffer buffer(&img);
+    buffer.open(QIODevice::WriteOnly);
+    imagen.save(&buffer,"jpeg");
+
+
+    // Insertar en la base de datos
+    query.prepare("INSERT INTO recdata (usuario, dispositivo, timestamp, imagen) "
+                  "VALUES (:usuario, :dispositivo, :timestamp, :imagen)");
+
+    query.bindValue(":usuario", usuario);
+    query.bindValue(":dispositivo", dispositivo);
+    query.bindValue(":timestamp", timestamp);
+    query.bindValue(":imagen", img);
+    qDebug() << query.exec();
+}
+
