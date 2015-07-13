@@ -167,15 +167,21 @@ void Rec::establecer_conexion(void){
     connect(cliente, SIGNAL(connected()), this, SLOT(conectado()));
     qDebug() << conectado_;
     connect(cliente, SIGNAL(disconnected()), cliente, SLOT(deleteLater()));*/
-
+    QList<QSslError> errors_;
     //Protocolo SSL
     sslsocket_=new QSslSocket(this);
+    connect(sslsocket_, SIGNAL(sslErrors(const QList<QSslError> &)),this, SLOT(errorOccured(const QList<QSslError> &)));
+
+    errors_.append(QSslError::SelfSignedCertificate);
+    errors_.append(QSslError::CertificateUntrusted);
+    sslsocket_->ignoreSslErrors(errors_);
+
+    //sslsocket_->ignoreSslErrors(errors_);
     connect(buffer, SIGNAL(transmitirImagen(QImage)), this, SLOT(actualizarImagen(QImage)));
     //connect(sslsocket_, SIGNAL(connected()), this, SLOT(conectado()));
     connect(sslsocket_, SIGNAL(encrypted()), this, SLOT(conectado()));
-
     sslsocket_->connectToHostEncrypted(preferencias.value("direccion").toString(),preferencias.value("puerto").toInt());
-    sslsocket_->ignoreSslErrors();
+
 
 }
 
@@ -184,7 +190,15 @@ void Rec::establecer_conexion(void){
  SLOTS
 **************************/
 
-
+void Rec::errorOccured(const QList<QSslError> & error)
+{
+  // simply ignore the errors
+  // it should be very careful when ignoring errors
+    qDebug()<<"Error en cliente";
+    for (int i=0;i<error.size();i++)
+        error[i].errorString();
+  sslsocket_->ignoreSslErrors(error);
+}
 
 void Rec::actualizarImagen(QImage imagen){
 

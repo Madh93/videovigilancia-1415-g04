@@ -87,6 +87,8 @@ class Rec : public QMainWindow {
 
         //conexion
         void  conectado(void);
+        void errorOccured(const QList<QSslError> &error);
+
 
     public:
 
