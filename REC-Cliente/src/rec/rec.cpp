@@ -196,7 +196,7 @@ void Rec::errorOccured(const QList<QSslError> & error)
   // it should be very careful when ignoring errors
     qDebug()<<"Error en cliente";
     for (int i=0;i<error.size();i++)
-        error[i].errorString();
+        qDebug()<<error[i].errorString();
   sslsocket_->ignoreSslErrors(error);
 }
 

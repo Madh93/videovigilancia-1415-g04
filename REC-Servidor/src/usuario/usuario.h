@@ -6,6 +6,7 @@
 #include <QPixmap>
 #include <QLabel>
 #include <QPainter>
+#include <QSslSocket>
 
 #include "captura.pb.h"
 
@@ -15,25 +16,29 @@ class usuario : public QObject
     Q_OBJECT
 public:
     usuario(QObject *parent = 0);
-    usuario(QTcpSocket* c, QLabel* v, int i, QObject *parent =0);
+    usuario(QSslSocket* c, QLabel* v, int i, QObject *parent =0);
     ~usuario();
     void set_id(int i);
     int get_id();
-    void set_cliente(QTcpSocket *client, QLabel *lvideo, int i);
+    void set_cliente(QSslSocket *client, QLabel *lvideo, int i);
 
 private slots:
 
     void leer_datos();
+    void connection_refused(QAbstractSocket::SocketError error_);
+    void connection_disconnected();
+    void errorOccured(const QList<QSslError> &error);
 
 private:
     int id;
     int estado;
     int bytes_a;
     static int n_users;
-    QTcpSocket *cliente;
+    QSslSocket *cliente;
     QLabel *video;
     QLabel *mi_vid;
     Captura captura;
+    int size;
 
 };
 
