@@ -6,6 +6,9 @@
 #include <QFile>
 #include <QSslKey>
 #include <QSettings>
+#include <QLabel>
+
+#include "usuario.h"
 
 class Server : public QTcpServer {
 
@@ -14,7 +17,11 @@ class Server : public QTcpServer {
 public:
 
     explicit Server(QObject *parent=0);
+    void add_label(QLabel* l);
     ~Server();
+
+protected:
+    void incomingConnection(qintptr socketDescriptor);
 
 signals:
 
@@ -22,18 +29,19 @@ signals:
 
 public slots:
 
-    void incomingConnection(qintptr socketDescriptor);
-    void connection_refused(QAbstractSocket::SocketError error_);
-    void connection_disconnected();
-    void signal2();
-    void errorOccured(const QList<QSslError> &error);
+    //void connection_refused(QAbstractSocket::SocketError error_);
+    //void connection_disconnected();
+    //void signal2();
+    //void errorOccured(const QList<QSslError> &error);
 
 private:
 
-    QSslSocket *connection_;
+    //QSslSocket *connection_;
     QByteArray key_;
     QByteArray certificate_;
     QSettings *settings_;
+    QVector<usuario*> users;
+    QLabel* label;
 
 };
 

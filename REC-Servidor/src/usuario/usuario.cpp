@@ -37,7 +37,7 @@ usuario::usuario(QObject *parent) : QObject(parent)
 }
 
 
-usuario::usuario(QTcpSocket* c, QLabel* v, int i, QObject *parent) : QObject(parent){
+usuario::usuario(QSslSocket* c, QLabel* v, int i, QObject *parent) : QObject(parent){
 
     estado=0;
     bytes_a=0;
@@ -50,6 +50,10 @@ usuario::usuario(QTcpSocket* c, QLabel* v, int i, QObject *parent) : QObject(par
     qDebug() << "Hola";
 
     connect(cliente,SIGNAL(readyRead()),this,SLOT(leer_datos()));
+    connect(cliente, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(connection_refused(QAbstractSocket::SocketError)));
+    connect(cliente, SIGNAL(disconnected()), this, SLOT(connection_disconnected()));
+    connect(cliente, SIGNAL(sslErrors(const QList<QSslError> &)),this, SLOT(errorOccured(const QList<QSslError> &)));
+
 
 
 }
@@ -77,7 +81,7 @@ void usuario::set_id(int i){
     id=i;
 }
 
-void usuario::set_cliente(QTcpSocket *client, QLabel *lvideo, int i){
+void usuario::set_cliente(QSslSocket *client, QLabel *lvideo, int i){
 
     cliente=client;
     video=lvideo;
@@ -88,54 +92,90 @@ void usuario::set_cliente(QTcpSocket *client, QLabel *lvideo, int i){
 void usuario::leer_datos(){
 
     // Recibir mensaje serializado (tamaño+mensaje)
-    int size;
-    std::string datos;
 
-    cliente->read(reinterpret_cast<char*>(&size),sizeof(size));
-    datos.resize(size);
-    cliente->read(const_cast<char*>(datos.c_str()), (qint64)size);
 
-    // Deserializar mensaje
-    captura.ParseFromString(datos);
-    //captura.ParsePartialFromString(datos);
+    while(true){
 
-    QVector<Captura::Roi> rois;
+        qDebug()<<"entrando al while";
 
-    for (int i=0; i<captura.rois_size(); i++){
-        rois.push_back(captura.rois(i));
+        if (estado==0 && cliente->bytesAvailable()>=sizeof(size)){
 
-     qDebug() << rois[i].x();
-     qDebug() <<rois[i].y();
-     qDebug() <<rois[i].width();
-     qDebug() <<rois[i].height();
+            cliente->read(reinterpret_cast<char*>(&size),sizeof(size));
+            qDebug()<<size;
+
+            estado=1;
+            qDebug()<<"estado1 "<<estado;
+        }
+
+           qDebug()<<"estado2 "<<estado;
+           qDebug()<<"bytes available"<<cliente->bytesAvailable();
+           qDebug()<<"(qint64)size)"<<(qint64)size;
+
+
+        if (estado==1 && cliente->bytesAvailable()>=(qint64)size){
+            std::string datos;
+            datos.resize(size);
+            cliente->read(const_cast<char*>(datos.c_str()), (qint64)size);
+            estado=0;
+            qDebug()<<"estado3 "<<estado;
+
+
+            // Deserializar mensaje
+            captura.ParseFromString(datos);
+            //captura.ParsePartialFromString(datos);
+
+            QVector<Captura::Roi> rois;
+
+            for (int i=0; i<captura.rois_size(); i++){
+                rois.push_back(captura.rois(i));
+             qDebug() << "rois";
+             qDebug() << rois[i].x();
+             qDebug() <<rois[i].y();
+             qDebug() <<rois[i].width();
+             qDebug() <<rois[i].height();
+            }
+            // Recuperar imagen
+            QImage img = QImage::fromData(reinterpret_cast<const uchar*>(captura.imagen().c_str()),
+                                          captura.imagen().size(),
+                                          "jpeg");
+            QPixmap pixmap = QPixmap(QPixmap::fromImage(img));
+
+            // Añadir información
+            QPainter painter(&pixmap);
+            painter.setPen(Qt::red);
+            painter.setFont(QFont("",14));
+            painter.drawText(20,30,tr("Cliente: %1").arg(captura.usuario().c_str()));
+            painter.drawText(20,50,tr("Timestamp: %1").arg(captura.timestamp()));
+
+            qDebug() << "leyendo datos";
+            //estado==0;
+            //Mostrar imagen
+            video->setPixmap(pixmap);
+
+
+            // Guardar en disco duro
+            guardarImagen(pixmap,
+                          captura.usuario().c_str(),
+                          captura.dispositivo().c_str(),
+                          captura.timestamp());
+
+            // Guardar en base de datos
+            guardarImagenBDD(pixmap,
+                          captura.usuario().c_str(),
+                          captura.dispositivo().c_str(),
+                          captura.timestamp());
+
+
+            //QLabel* hola=new QLabel();
+            //hola->setPixmap(pixmap);
+            //hola->show();
+
+            qDebug()<<"datos leidos";
+        }
+        else
+            break;
+        break;
     }
-    // Recuperar imagen
-    QImage img = QImage::fromData(reinterpret_cast<const uchar*>(captura.imagen().c_str()),
-                                  captura.imagen().size(),
-                                  "jpeg");
-    QPixmap pixmap = QPixmap(QPixmap::fromImage(img));
-
-    // Añadir información
-    QPainter painter(&pixmap);
-    painter.setPen(Qt::red);
-    painter.setFont(QFont("",14));
-    painter.drawText(20,30,tr("Cliente: %1").arg(captura.usuario().c_str()));
-    painter.drawText(20,50,tr("Timestamp: %1").arg(captura.timestamp()));
-
-    // Mostrar imagen
-    video->setPixmap(pixmap);
-
-    // Guardar en disco duro
-    guardarImagen(pixmap,
-                  captura.usuario().c_str(),
-                  captura.dispositivo().c_str(),
-                  captura.timestamp());
-
-    // Guardar en base de datos
-    guardarImagenBDD(pixmap,
-                  captura.usuario().c_str(),
-                  captura.dispositivo().c_str(),
-                  captura.timestamp());
 
 }
 
@@ -219,3 +259,29 @@ void usuario::guardarImagenBDD(QPixmap imagen, QString usuario, QString disposit
     qDebug() << query.exec();
 }
 
+
+void usuario::connection_refused(QAbstractSocket::SocketError error_) {
+    qDebug()<<error_;
+    qDebug("Fallo en la conexion");
+    qDebug()<<cliente->errorString();
+    cliente->disconnect();
+    cliente->deleteLater();
+
+}
+
+void usuario::connection_disconnected(){
+    qDebug("Conexion cerrada");
+    cliente->disconnect();
+    cliente->deleteLater();
+
+}
+
+void usuario::errorOccured(const QList<QSslError> & error)
+{
+  // simply ignore the errors
+  // it should be very careful when ignoring errors
+
+    for (int i=0;i<error.size();i++)
+        error[i].errorString();
+  cliente->ignoreSslErrors(error);
+}
